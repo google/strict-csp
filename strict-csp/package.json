@@ -1,0 +1,35 @@
+{
+  "name": "strict-csp",
+  "version": "1.0.0",
+  "description": "Enables a hash-based strict Content Security Policy for static HTML files and single page applications.",
+  "main": "build/index.js",
+  "scripts": {
+    "build": "rimraf build && tsc",
+    "auto-csp": "npm run build && node build/index.js",
+    "lint": "eslint . --ext .ts",
+    "tsc": "tsc"
+  },
+  "keywords": [
+    "csp",
+    "security"
+  ],
+  "author": "Lukas Weichselbaum",
+  "license": "Apache-2.0",
+  "dependencies": {
+    "@types/cheerio": "^0.22.23",
+    "@types/command-line-args": "^5.0.0",
+    "cheerio": "^1.0.0-rc.5",
+    "command-line-args": "^5.1.1",
+    "command-line-usage": "^6.1.1",
+    "fs": "^0.0.1-security",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^14.14.14",
+    "@typescript-eslint/eslint-plugin": "^4.10.0",
+    "@typescript-eslint/parser": "^4.10.0",
+    "eslint": "^7.15.0",
+    "rimraf": "^3.0.2",
+    "typescript": "^4.1.3"
+  }
+}

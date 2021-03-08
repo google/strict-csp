@@ -1,0 +1,15 @@
+{
+  "name": "strict-csp-html-webpack-plugin",
+  "version": "1.0.0",
+  "description": "",
+  "main": "plugin.js",
+  "dependencies": {
+    "strict-csp": "^1.0.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "Apache-2.0"
+}
