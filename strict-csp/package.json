@@ -15,6 +15,12 @@
   ],
   "author": "Lukas Weichselbaum",
   "license": "Apache-2.0",
+  "prepublish": "tsc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/google/strict-csp.git",
+    "directory": "strict-csp"
+  },
   "dependencies": {
     "@types/cheerio": "^0.22.23",
     "@types/command-line-args": "^5.0.0",
