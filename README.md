@@ -23,6 +23,8 @@ Note: the **exact `html-webpack-plugin` instance** that `strict-csp-webpack-plug
 
 ### (only once) Step 1/3: link the library strict-csp where needed
 
+- Build the library, so that there's something to link to:
+  `cd strict-csp && npm install && npm run-script build && cd ..`
 - Create a link to the library:
   `cd strict-csp && npm link && cd ..`
 - Link to the library where needed:
@@ -36,14 +38,13 @@ You need to do this only once.
 
 - Create a link to the plugin:
   `cd strict-csp-html-webpack-plugin && npm link && cd ..`
-- Link to the library where needed:
+- (only once) Install the dependencies in the React app, so that we can link to the plugin:
+  `cd react-app && npm install && cd ..`
+- Link to the plugin where needed:
   `cd react-app && npm link 'strict-csp-html-webpack-plugin' && cd ..`
 
 ### Step 3/3: startup
 
-In the React app:
-
-- (only once) Install the dependencies: `cd react-app && npm i && cd ..`
 - `cd react-app && npm start && cd ..`
 
 ✨ That's it.
@@ -65,6 +66,12 @@ Note:
 #### When changing the plugin code
 
 Every time you change the plugin code (`strictCspWebpackPlugin.js`), you need to restart the react app with `npm start` to see the changes.
+
+#### Tips
+
+To troubleshoot linking issues:
+`npm uninstall`
+`npm ls --depth=0 --link=true`
 
 ## How this was built
 
