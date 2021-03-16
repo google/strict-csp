@@ -1,3 +1,10 @@
+⚠️⚠️⚠️⚠️
+
+**This is an MVP. Work in Progress. 
+Do not use in production!**
+
+⚠️⚠️⚠️⚠️
+
 # strict-csp-webpack-plugin 🦌
 
 Glossary:
