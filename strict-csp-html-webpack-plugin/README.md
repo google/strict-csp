@@ -1,0 +1,70 @@
+strict-csp-html-webpack-plugin sets up a strict hash-based Content-Security-Policy to help protect your site against XSS attacks.
+
+**This plugin is best-suited for single-page applications. If you have server-side logics, use a nonce-based strict CSP instead.**
+
+## What this plugin does
+
+- It replaces sourced scripts with an inline script that dynamically loads all sourced scripts.
+- It creates a strict hash-based CSP that efficiently helps protect your site against XSS. This CSP is set in a meta tag. It looks like this: `script-src {HASH-INLINE-SCRIPT} 'strict-dynamic'; object-src 'none'; base-uri 'none';`. `{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sources scripts.
+
+Note: if you have other inline scripts, the plugin takes care of them too: it adds their hash to the CSP to ensure they can be loaded.
+
+### How it works
+
+strict-csp-webpack-plugin uses the `strict-csp` library to form a strict CSP and hooks into `HtmlWebpackPlugin` to set up this CSP as a `meta` HTML tag.
+
+### Not supported
+
+- XML
+- Custom configuration for the hashing algorithm (right now, only sha256)
+- `prefetch` scripts
+
+## Quickstart
+
+### Step 1: install the plugin
+
+`npm i --save strict-csp-html-webpack-plugin`
+
+(or with `yarn`)
+
+### Step 2: Configure the plugin
+
+In your site's or app's `webpack.config.js`:
+
+```javascript
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const StrictCspHtmlWebpackPlugin = require('strict-csp-html-webpack-plugin');
+
+module.exports = function (webpackEnv) {
+  return {
+    // ...
+    plugins: [
+      new HtmlWebpackPlugin(
+        Object.assign(
+          {}
+          // ... HtmlWebpackPlugin config
+        )
+      ),
+      new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin),
+    ],
+  };
+};
+```
+
+⚠️ If you have a React app created with create-react-app, you'll need to `eject` in order to configure and use this plugin (because you need access to the webpack config).
+
+### Step 3: Restart the app
+
+- The app should run without errors (check the console).
+- Observe that a `meta` HTML tag has been added to the application's `index.html`, and that one inline script now loads all scripts.
+
+✨ Your app is now protected from many XSS attacks.
+
+## Options
+
+By default, `new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin)` will set up a valid, strict, hash-based CSP.
+
+You can use additional options to configure the plugin:
+
+- `enabled` (default: `true`)
+- `enableTrustedTypes` (default: `false`): when `true`, will enable
