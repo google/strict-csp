@@ -1,3 +1,5 @@
+You may be looking for the webpack plugin >> Head over to the [plugin](https://github.com/google/strict-csp/tree/main/strict-csp-html-webpack-plugin).
+
 ⚠️⚠️⚠️⚠️
 
 **This is an MVP. Work in Progress. 
@@ -5,9 +7,7 @@ Do not use in production!**
 
 ⚠️⚠️⚠️⚠️
 
-Head over to the [plugin](https://github.com/google/strict-csp/tree/main/strict-csp-html-webpack-plugin)
-
-# strict-csp-webpack-plugin 🦌
+## About this repo
 
 Glossary:
 
