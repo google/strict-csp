@@ -1,4 +1,4 @@
-strict-csp-html-webpack-plugin sets up a strict hash-based Content-Security-Policy to help protect your site against XSS attacks.
+strict-csp-html-webpack-plugin sets up a [strict Content-Security-Policy (CSP)](https://web.dev/trusted-types) to help protect your site against XSS attacks. It's a hash-based CSP.
 
 **This plugin is best-suited for single-page applications. If you have server-side logics, use a nonce-based strict CSP instead.**
 
@@ -62,9 +62,11 @@ module.exports = function (webpackEnv) {
 
 ## Options
 
-By default, `new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin)` will set up a valid, strict, hash-based CSP.
+By default, strict-csp-html-webpack-plugin will set up a valid, strict, hash-based CSP.
 
 You can use additional options to configure the plugin:
 
-- `enabled` (default: `true`)
-- `enableTrustedTypes` (default: `false`): when `true`, will enable
+| Option               | Default | What it does                                                                                                            |
+| -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `enabled`            | `true`  | When `true`, activates the plugin.                                                                                      |
+| `enableTrustedTypes` | `true`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
