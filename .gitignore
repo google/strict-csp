@@ -1,0 +1,30 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+
+# dependencies
+strict-csp-html-webpack-plugin/node_modules
+react-app/node_modules
+strict-csp/node_modules
+
+# testing
+react-app/coverage
+
+# built
+strict-csp/build
+react-app/build
+react-app/dist
+
+# misc
+.DS_Store
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.eslintcache
+react-app/.pnp
+react-app/.pnp.js
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
