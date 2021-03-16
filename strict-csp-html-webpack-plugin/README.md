@@ -1,3 +1,10 @@
+⚠️⚠️⚠️⚠️
+
+**This is an MVP. Work in Progress. 
+Do not use in production!**
+
+⚠️⚠️⚠️⚠️
+
 strict-csp-html-webpack-plugin sets up a [strict Content-Security-Policy (CSP)](https://web.dev/strict-csp) to help protect your site against XSS attacks. It's a hash-based CSP.
 
 **This plugin is best-suited for single-page applications. If you have server-side logics, use a nonce-based strict CSP instead.**
