@@ -13,7 +13,7 @@ Three codebases are in this repo:
 
 ## Setup for development purposes
 
-See [DEVELOP.md](/docs/DEVELOP.md).
+See [DEVELOP.md](/DEVELOP.md).
 
 ## How this was built
 

@@ -8,7 +8,7 @@
    sh ./scripts/dev-setup.sh
    ```
 
-   This will create all local symlinks you need. [See details](/docs/DEVELOP.md).
+   This will create all local symlinks you need (see details below).
 
 2. Startup:
 
