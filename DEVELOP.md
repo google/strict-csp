@@ -46,13 +46,13 @@ Note: the **exact `html-webpack-plugin` instance** that `strict-csp-webpack-plug
 
 ## What `dev-setup.sh` does
 
-### Link the library strict-csp where needed
+### Links the library strict-csp where needed
 
 - Builds the library, so that there's something to link to:
   `cd strict-csp && npm install && npm run-script build && cd ..`
 - Creates a link to the library:
   `cd strict-csp && npm link && cd ..`
-- Link sto the library where needed:
+- Links to the library where needed:
   `cd strict-csp-html-webpack-plugin && npm link 'strict-csp' && cd ..`
 
 This is done only once.
