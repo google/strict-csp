@@ -5,7 +5,7 @@
 1. Dev setup:
 
    ```bash
-   sh ./scripts/dev-setup.sh
+   sh ./dev-setup.sh
    ```
 
    This will create all local symlinks you need (see details below).
