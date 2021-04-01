@@ -15,6 +15,9 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Lukas Weichselbaum",
+  "author": "Lukas Weichselbaum <lwe@google.com>",
+  "contributors": [
+    "Maud Nalpas <maudn@google.com>"
+  ],
   "license": "Apache-2.0"
 }

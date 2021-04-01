@@ -13,7 +13,10 @@
     "csp",
     "security"
   ],
-  "author": "Lukas Weichselbaum",
+  "author": "Lukas Weichselbaum <lwe@google.com>",
+  "contributors": [
+    "Maud Nalpas <maudn@google.com>"
+  ],
   "license": "Apache-2.0",
   "prepublish": "tsc",
   "repository": {
