@@ -11,6 +11,7 @@
   },
   "keywords": [
     "csp",
+    "content-security-policy",
     "security"
   ],
   "author": "Lukas Weichselbaum <lwe@google.com>",
