@@ -1,6 +1,6 @@
 {
   "name": "strict-csp",
-  "version": "1.0.0",
+  "version": "1.0.0-beta.0",
   "description": "Enables a hash-based strict Content Security Policy for static HTML files and single page applications.",
   "main": "build/index.js",
   "scripts": {
