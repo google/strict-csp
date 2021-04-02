@@ -3,6 +3,7 @@
   "version": "1.0.0-beta.1",
   "description": "Enables a hash-based strict Content Security Policy for static HTML files and single page applications.",
   "main": "build/index.js",
+  "types": "build/index.d.ts",
   "scripts": {
     "build": "rimraf build && tsc",
     "auto-csp": "npm run build && node build/index.js",
