@@ -1,4 +1,4 @@
-name: Node.js strict-csp Package
+name: Node.js webpack Package
 on:
   workflow_dispatch:
   release:
