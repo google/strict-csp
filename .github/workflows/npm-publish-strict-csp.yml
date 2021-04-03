@@ -1,5 +1,6 @@
 name: Node.js strict-csp Package
 on:
+  workflow_dispatch:
   release:
     types: [created]
 defaults:
