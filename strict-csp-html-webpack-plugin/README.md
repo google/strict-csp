@@ -1,9 +1,8 @@
-[Available on npm](https://www.npmjs.com/package/strict-csp-html-webpack-plugin)
+**[Available on npm](https://www.npmjs.com/package/strict-csp-html-webpack-plugin).**
 
 ⚠️⚠️⚠️⚠️
 
-**This is an MVP. Work in Progress. 
-Do not use in production!**
+This is an MVP. Do not use in production!
 
 ⚠️⚠️⚠️⚠️
 
