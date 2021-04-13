@@ -30,7 +30,7 @@ strict-csp-webpack-plugin uses the `strict-csp` library to form a strict CSP and
 
 ### Step 1: install the plugin
 
-`npm i --save strict-csp-html-webpack-plugin`
+`npm i --save strict-csp-html-webpack-plugin@beta`
 
 (or with `yarn`)
 
