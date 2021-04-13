@@ -2,7 +2,7 @@
 
 ⚠️⚠️⚠️⚠️
 
-This is an MVP. Do not use in production!
+This is an MVP. Do not use in production.
 
 ⚠️⚠️⚠️⚠️
 
