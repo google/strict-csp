@@ -1,4 +1,4 @@
-You may be looking for the webpack plugin >> Head over to the [plugin](https://github.com/google/strict-csp/tree/main/strict-csp-html-webpack-plugin).
+## You may be looking for the webpack plugin >> Head over to the [plugin](https://github.com/google/strict-csp/tree/main/strict-csp-html-webpack-plugin).
 
 ⚠️⚠️⚠️⚠️
 
