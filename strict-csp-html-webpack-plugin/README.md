@@ -19,13 +19,18 @@ Note: if you have other inline scripts, the plugin takes care of them too: it ad
 
 ### How it works
 
-strict-csp-webpack-plugin uses the `strict-csp` library to form a strict CSP and hooks into `HtmlWebpackPlugin` to set up this CSP as a `meta` HTML tag.
+strict-csp-webpack-plugin uses the [strict-csp](https://github.com/google/strict-csp/tree/main/strict-csp) custom library to form a strict CSP and hooks into `HtmlWebpackPlugin` to set up this CSP as a `meta` HTML tag.
 
-### Not supported
+### What's not supported
 
 - XML
 - Custom configuration for the hashing algorithm (right now, only sha256)
 - `prefetch` scripts
+
+### How this plugin differs from [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin)
+
+This plugin focuses on one thing: it sets up a [strict CSP](https://web.dev/strict-csp), that is a CSP that's efficient against XSS attacks.
+If you need something more flexible or if you use a CSP for other purposes than XSS mitigations, check out [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin).
 
 ## Quickstart
 
