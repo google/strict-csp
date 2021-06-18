@@ -8,15 +8,53 @@
    sh ./dev-setup.sh
    ```
 
-   This will create all local symlinks you need (see details below).
+   This will create some of the local symlinks you need (see details below).
 
-2. Startup:
+2. Create a test React app and link it with your local plugin
 
    ```bash
-   cd react-app && npm start && cd ..
+   npx create-react-app react-app && cd react-app
+   # make the local CSP plugin instance available in the React app
+   # note that the symlink 'strict-csp-html-webpack-plugin' has been creaed at Step 1
+   npm i --save strict-csp-html-webpack-plugin@beta
+   npm link 'strict-csp-html-webpack-plugin'
+   # eject so you can edit the webpack config to add CSP functionality to the React app
+   npm run eject
    ```
 
-✨ That's it. Open `http://localhost:{port}` and inspect `index.html`. Observe that `index.html` includes a valid hash-based CSP in a meta tag.
+   (Note: if you need to unlink later: `cd react-app && npm unlink 'strict-csp-html-webpack-plugin' && cd ..`)
+
+3. Add CSP functionality to the React app
+
+   In react-app's `webpack.config.js`:
+
+   ```javascript
+   const HtmlWebpackPlugin = require('html-webpack-plugin');
+   const StrictCspHtmlWebpackPlugin = require('strict-csp-html-webpack-plugin');
+
+   module.exports = function (webpackEnv) {
+     return {
+       // ...
+       plugins: [
+         new HtmlWebpackPlugin(
+           Object.assign(
+             {}
+             // ... HtmlWebpackPlugin config
+           )
+         ),
+         new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin),
+       ],
+     };
+   };
+   ```
+
+4. Startup:
+
+   ```bash
+   cd react-app && npm start
+   ```
+
+✨ That's it. Open `http://localhost:{port}` and inspect `index.html`. Observe that react app's `index.html` includes a valid hash-based CSP in a meta tag.
 
 ### Developing
 
@@ -33,7 +71,7 @@ Note:
 
 #### When changing the plugin code
 
-Every time you change the plugin code (`strictCspWebpackPlugin.js`), you need to restart the react app with `npm start` to see the changes.
+Every time you change locally the plugin code (`strictCspWebpackPlugin.js`), you need to restart the react app with `npm start` to see the changes.
 
 ## How the development setup works
 
@@ -46,11 +84,9 @@ Note: the **exact `html-webpack-plugin` instance** that `strict-csp-webpack-plug
 
 ## What `dev-setup.sh` does
 
-### Links the library strict-csp where needed
-
 - Builds the library, so that there's something to link to:
   `cd strict-csp && npm install && npm run-script build && cd ..`
-- Creates a link to the library:
+- Creates a symlink to the library:
   `cd strict-csp && npm link && cd ..`
 - Links to the library where needed:
   `cd strict-csp-html-webpack-plugin && npm link 'strict-csp' && cd ..`
@@ -58,15 +94,6 @@ Note: the **exact `html-webpack-plugin` instance** that `strict-csp-webpack-plug
 This is done only once.
 
 🧐 Troubleshooting: if you get an error like "linked library not found", ensure that `main` in strict-csp's `package.json` points to a file that exists.
-
-### Links the plugin strict-csp-webpack-plugin where needed
-
-- Creates a link to the plugin:
-  `cd strict-csp-html-webpack-plugin && npm link && cd ..`
-- (only once) Installs the dependencies in the React app, so that we can link to the plugin:
-  `cd react-app && npm install && cd ..`
-- Links to the plugin where needed:
-  `cd react-app && npm link 'strict-csp-html-webpack-plugin' && cd ..`
 
 ## To reset linking
 
