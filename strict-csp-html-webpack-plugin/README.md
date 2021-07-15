@@ -13,7 +13,7 @@ strict-csp-html-webpack-plugin sets up a [strict Content-Security-Policy (CSP)](
 ## What this plugin does
 
 - It replaces sourced scripts with an inline script that dynamically loads all sourced scripts.
-- It creates a strict hash-based CSP that efficiently helps protect your site against XSS. This CSP is set in a meta tag. It looks like this: `script-src {HASH-INLINE-SCRIPT} 'strict-dynamic'; object-src 'none'; base-uri 'none';`. `{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sources scripts.
+- It creates a strict hash-based CSP that efficiently helps protect your site against XSS. This CSP is set in a meta tag. It looks like this: `script-src {HASH-INLINE-SCRIPT} 'strict-dynamic'; object-src 'none'; base-uri 'none';`. `{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sourced scripts.
 
 Note: if you have other inline scripts, the plugin takes care of them too: it adds their hash to the CSP to ensure they can be loaded.
 
