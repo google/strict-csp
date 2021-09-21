@@ -1,38 +1,26 @@
-**[Available on npm](https://www.npmjs.com/package/strict-csp-html-webpack-plugin).**
+# strict-csp-html-webpack-plugin
 
-⚠️⚠️⚠️⚠️
+[Available on npm](https://www.npmjs.com/package/strict-csp-html-webpack-plugin).
 
-This is an MVP. Do not use in production.
+⚠️ This is experimental. Do not use in production. Make sure to check [what's not supported](https://github.com/google/strict-csp/issues?q=is%3Aissue+is%3Aopen+label%3Afeature).
 
-⚠️⚠️⚠️⚠️
+## What this plugin does: defense-in-depth against XSS 🛡
 
-strict-csp-html-webpack-plugin sets up a [strict Content-Security-Policy (CSP)](https://web.dev/strict-csp) to help protect your site against XSS attacks. It's a hash-based CSP.
 
-**This plugin is best-suited for single-page applications. If you have server-side logics, use a nonce-based strict CSP instead.**
+Cross-site scripting (XSS)—the ability to inject malicious scripts into a web application—has been one of the biggest web security vulnerabilities for over a decade.
 
-## What this plugin does
+strict-csp-html-webpack-plugin helps protect your single-page application against XSS attacks. It does so by configuring a [strict Content-Security-Policy (CSP)](https://web.dev/strict-csp) for your application. 
 
-- It replaces sourced scripts with an inline script that dynamically loads all sourced scripts.
-- It creates a strict hash-based CSP that efficiently helps protect your site against XSS. This CSP is set in a meta tag. It looks like this: `script-src {HASH-INLINE-SCRIPT} 'strict-dynamic'; object-src 'none'; base-uri 'none';`. `{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sourced scripts.
+A strict CSP, added in the form of a meta tag, looks as follows:
 
-Note: if you have other inline scripts, the plugin takes care of them too: it adds their hash to the CSP to ensure they can be loaded.
+```html
+<meta 
+      http-equiv="Content-Security-Policy" 
+      content="script-src 'sha256-3uCZp...oQxI=' 'strict-dynamic'; style-src 'self' 'unsafe-inline'"
+</meta>
+```
 
-### How it works
-
-strict-csp-webpack-plugin uses the [strict-csp](https://github.com/google/strict-csp/tree/main/strict-csp) custom library to form a strict CSP and hooks into `HtmlWebpackPlugin` to set up this CSP as a `meta` HTML tag.
-
-### What's not supported
-
-- XML
-- Custom configuration for the hashing algorithm (right now, only sha256)
-- `prefetch` scripts
-
-### How this plugin differs from [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin)
-
-This plugin focuses on one thing: it sets up a [strict CSP](https://web.dev/strict-csp), that is a CSP that's efficient against XSS attacks.
-If you need something more flexible or if you use a CSP for other purposes than XSS mitigations, check out [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin).
-
-## Quickstart
+## Quickstart 🚀
 
 ### Step 1: install the plugin
 
@@ -83,3 +71,5 @@ You can use additional options to configure the plugin:
 | -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
 | `enabled`            | `true`  | When `true`, activates the plugin.                                                                                      |
 | `enableTrustedTypes` | `true`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
+
+
