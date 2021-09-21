@@ -25,4 +25,4 @@ See [DEVELOP.md](/DEVELOP.md).
 
 ## How this was built
 
-- The React app was built with create-react-app and then ejected.
+The React app was built with create-react-app and then ejected.
