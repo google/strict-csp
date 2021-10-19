@@ -61,12 +61,14 @@ class StrictCspHtmlWebpackPlugin {
     compiler.hooks.compilation.tap(
       'StrictCspHtmlWebpackPlugin',
       (compilation) => {
-        this.htmlWebpackPlugin
-          .getHooks(compilation)
-          .beforeEmit.tapAsync(
-            'StrictCspHtmlWebpackPlugin',
-            this.processCsp.bind(this, compilation)
-          );
+        const hook = typeof this.htmlWebpackPlugin.getHooks === 'function' ?
+          this.htmlWebpackPlugin.getHooks(compilation).beforeEmit : // html-webpack-plugin v4 and above
+          compilation.hooks.htmlWebpackPluginAfterHtmlProcessing; // html-webpack-plugin v3
+
+        hook.tapAsync(
+          'StrictCspHtmlWebpackPlugin',
+          this.processCsp.bind(this, compilation)
+        );
       }
     );
   }
