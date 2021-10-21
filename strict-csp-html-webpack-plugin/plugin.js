@@ -19,6 +19,7 @@ const strictCspLib = require('strict-csp');
 const defaultOptions = {
   enabled: true,
   enableTrustedTypes: false,
+  enableUnsafeEval: false,
 };
 
 class StrictCspHtmlWebpackPlugin {
@@ -44,7 +45,8 @@ class StrictCspHtmlWebpackPlugin {
       const strictCsp = strictCspLib.StrictCsp.getStrictCsp(
         scriptHashes,
         this.options.enableTrustedTypes,
-        true
+        true,
+        this.options.enableUnsafeEval
       );
       strictCspModule.addMetaTag(strictCsp);
       htmlPluginData.html = strictCspModule.serializeDom();
