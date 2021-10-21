@@ -47,11 +47,15 @@ export class StrictCsp {
    * @param enableBrowserFallbacks If fallbacks for older browsers should be
    *   added. This is will not weaken the policy as modern browsers will ignore
    *   the fallbacks.
+   * @param enableUnsafeEval If you cannot remove all uses of eval(), you can
+   *   still set a strict CSP, but you will have to use the 'unsafe-eval'
+   *   keyword which will make your policy slightly less secure.
    */
   static getStrictCsp(
     hashes?: string[],
     enableTrustedTypes?: boolean,
-    enableBrowserFallbacks?: boolean
+    enableBrowserFallbacks?: boolean,
+    enableUnsafeEval?: boolean
   ): string {
     hashes = hashes || [];
     let strictCspTemplate = {
@@ -85,6 +89,12 @@ export class StrictCsp {
         ...strictCspTemplate,
         ...{ 'require-trusted-types-for': [`'script'`] },
       };
+    }
+
+    // If enabled, `eval()`-calls will be allowed, making the policy slightly
+    // less secure.
+    if (enableUnsafeEval) {
+      strictCspTemplate['script-src'].push(`'unsafe-eval'`);
     }
 
     return Object.entries(strictCspTemplate)
