@@ -66,3 +66,6 @@ This CSP efficiently helps protect your site against XSS. This CSP is set in a `
 `{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sourced scripts.
 
 **TL;DR: this library automates the steps to [add a hash-based CSP to your site](https://web.dev/strict-csp/#:~:text=Option%20B%3A%20Hash-based%20CSP%20Response%20Header).**
+
+## Resources
+* [Mitigate cross-site scripting (XSS) with a strict Content Security Policy (CSP)](https://web.dev/strict-csp/)
