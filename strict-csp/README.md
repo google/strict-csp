@@ -40,17 +40,17 @@ Let's say that `htmlString` is your SPA's html as a string.
 
 **TL;DR: this library automates the steps to [add a hash-based strict CSP to your site](https://web.dev/strict-csp/#adopting-a-strict-csp).**
 
-## Options
+## Arguments for `getStrictCsp`
 
 By default, strict-csp will generate up a valid, strict, hash-based CSP.
 
 You can use additional options to configure it:
 
-| Option               | Default | What it does                                                                                                            |
-| -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `enabled`            | `true`  | When `true`, activates the plugin.                                                                                      |
-| `enableTrustedTypes` | `true`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
-| `enableUnsafeEval`   | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
+| Option               | What it does                                                                                                            |
+| -------------------- |  ----------------------------------------------------------------------------------------------------------------------- |
+| `enableTrustedTypes` | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
+| `enableBrowserFallbacks` | When `true`, enables fallbacks for older browsers. This does not weaken the policy. |
+| `enableUnsafeEval`   | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
 
 ## How does this library work?
 
