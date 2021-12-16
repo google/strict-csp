@@ -2,7 +2,7 @@
 
 [Available on npm](https://www.npmjs.com/package/strict-csp-html-webpack-plugin).
 
-⚠️ This is experimental. Do not use in production. Make sure to check [what's not supported](https://github.com/google/strict-csp/issues?q=is%3Aissue+is%3Aopen+label%3Afeature). Keep in mind that the `Report-Only` mode is not supported here since the policy is added via a meta tag (`Content-Security-Policy-Report-Only` is unfortunatelt not supported in meta tags).
+⚠️ This is experimental. Make sure to check [what's not supported](https://github.com/google/strict-csp/issues?q=is%3Aissue+is%3Aopen+label%3Afeature). Keep in mind that the `Report-Only` mode is not supported here since the policy is added via a meta tag (`Content-Security-Policy-Report-Only` is unfortunately not supported in meta tags).
 
 ## What this plugin does: defense-in-depth against XSS 🛡
 
@@ -73,27 +73,27 @@ You can use additional options to configure the plugin:
 | `enableTrustedTypes` | `true`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
 | `enableUnsafeEval`   | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
 
-
-
 ## FAQ
 
 ### Does this plugin protect my users from XSS attacks?
 
-It helps, but it's not enough.
+A CSP offers an *extra* layer of security (also called "defense-in-depth" technique) to mitigate XSS attacks. It's not a replacement for properly escaping user-controlled data and sanitizing user input.
 
-To protect your site from XSS, first of all, make sure to sanitize user input. Some frameworks do this by default.
-A strict CSP is an extra security layer (also called "defense-in-depth" technique) that helps mitigate XSS attacks in case there's a sanitization bug, or other XSS bug, in your application or dependency. A strict CSP prevents the execution of malicious scripts in case they make it to your application.
+Now, this plugin sets a hash-based **strict** CSP. While this does remove several common XSS attack surfaces, it doesn't guarantee that your application is XSS-free.
+
+To cover most of the XSS attack surface, we recommend to also enable [Trusted Types](https://web.dev/trusted-types/) (DOM XSS).
 
 ### Where should I use this plugin?
 
-This plugin is best-suited for single-page applications. 
-If you have server-side logics, use a [nonce-based strict CSP](https://web.dev/strict-csp/#step-1:-decide-if-you-need-a-nonce-or-hash-based-csp) instead.
+This plugin is best-suited for use in single-page applications that are served statically.
+If you are rendering HTML on the server-side, you will also have to consider stored and reflected XSS. In this case we recommend using a [nonce-based strict CSP](https://web.dev/strict-csp#step-1:-decide-if-you-need-a-nonce-or-hash-based-csp) instead.
 
-### How does this plugin differ from [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin)?
+### How does this plugin, **strict**-csp-html-webpack-plugin, differ from [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin)?
 
-This plugin focuses on one thing: it sets up a [strict CSP](https://web.dev/strict-csp), that is, an efficient defense-in-depth mechanism against XSS attacks.
+This plugin **strict**-csp-html-webpack-plugin focuses on one thing: it mitigates XSS vulnerabilities. It does so by setting up a [strict CSP](https://web.dev/strict-csp), that is, an efficient defense-in-depth mechanism against XSS attacks.
+It automatically sets up a secure CSP and frees you from manual configurations.
 
-csp-html-webpack-plugin is more flexible. If you're using a CSP for other purposes than XSS mitigation, check out [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin).
+csp-html-webpack-plugin on the other hand, has a numbers of options to choose from. If you're using a CSP for other purposes than XSS mitigation, check out [csp-html-webpack-plugin](https://www.npmjs.com/package/csp-html-webpack-plugin). Note that at the moment, static nonces risk making csp-html-webpack-plugin's CSP bypassable, though this may be resolved in the future.
 
 ### I already have a CSP on my site, with an allowlist*. Should I consider using this plugin?
 *An allowlist CSP looks as follows: `default-src https://cdn.example https://site1.example https://site2.example;`.
@@ -117,9 +117,8 @@ See [issue #15](https://github.com/google/strict-csp/issues/15).
 
 ### How does a strict CSP compare with subresource integrity (SRI)?
 
-SRI works well for static resources hosted on a CDN. 
-
-But it won't work anymore if scripts are changing, e.g. if they contain custom data, for example a twitter plugin or google analytics: in this case, you can't really use SRI because you don't know if/when they'll change their scripts.
+SRI can be used to ensure the integrity of scripts, e.g. to protect your site in case your CDN gets compromised.
+However, SRI will not mitigate XSS caused by an injection vulnerability *in your own site*.
 
 ### Why should sourced scripts be replaced by an inline script?
 
