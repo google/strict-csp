@@ -135,4 +135,7 @@ Learn more about what the strict-csp library exactly does [here](https://github.
 
 **TL;DR: this library automates the steps to [add a hash-based strict CSP to your site](https://web.dev/strict-csp/#adopting-a-strict-csp).**
 
+## Resources
+* [Mitigate cross-site scripting (XSS) with a strict Content Security Policy (CSP)](https://web.dev/strict-csp/)
+
 
