@@ -53,9 +53,16 @@ export class StrictCsp {
    */
   static getStrictCsp(
     hashes?: string[],
-    enableTrustedTypes?: boolean,
-    enableBrowserFallbacks?: boolean,
-    enableUnsafeEval?: boolean
+    // default CSP options
+    cspOptions: {
+      enableBrowserFallbacks?: boolean;
+      enableTrustedTypes?: boolean;
+      enableUnsafeEval?: boolean;
+    } = {
+      enableBrowserFallbacks: true,
+      enableTrustedTypes: false,
+      enableUnsafeEval: false,
+    }
   ): string {
     hashes = hashes || [];
     let strictCspTemplate = {
@@ -72,7 +79,7 @@ export class StrictCsp {
     // Adds fallbacks for browsers not compatible to CSP3 and CSP2.
     // These fallbacks are ignored by modern browsers in presence of hashes,
     // and 'strict-dynamic'.
-    if (enableBrowserFallbacks) {
+    if (cspOptions.enableBrowserFallbacks) {
       // Fallback for Safari. All modern browsers supporting strict-dynamic will
       // ignore the 'https:' fallback.
       strictCspTemplate['script-src'].push('https:');
@@ -84,7 +91,7 @@ export class StrictCsp {
 
     // If enabled, dangerous DOM sinks will only accept typed objects instead of
     // strings.
-    if (enableTrustedTypes) {
+    if (cspOptions.enableTrustedTypes) {
       strictCspTemplate = {
         ...strictCspTemplate,
         ...{ 'require-trusted-types-for': [`'script'`] },
@@ -93,7 +100,7 @@ export class StrictCsp {
 
     // If enabled, `eval()`-calls will be allowed, making the policy slightly
     // less secure.
-    if (enableUnsafeEval) {
+    if (cspOptions.enableUnsafeEval) {
       strictCspTemplate['script-src'].push(`'unsafe-eval'`);
     }
 

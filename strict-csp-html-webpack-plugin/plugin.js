@@ -42,12 +42,12 @@ class StrictCspHtmlWebpackPlugin {
       const strictCspModule = new strictCspLib.StrictCsp(htmlPluginData.html);
       strictCspModule.refactorSourcedScriptsForHashBasedCsp();
       const scriptHashes = strictCspModule.hashAllInlineScripts();
-      const strictCsp = strictCspLib.StrictCsp.getStrictCsp(
-        scriptHashes,
-        this.options.enableTrustedTypes,
-        true,
-        this.options.enableUnsafeEval
-      );
+      const { enableTrustedTypes, enableUnsafeEval } = this.options;
+      const strictCsp = strictCspLib.StrictCsp.getStrictCsp(scriptHashes, {
+        enableBrowserFallbacks: true,
+        enableTrustedTypes,
+        enableUnsafeEval,
+      });
       strictCspModule.addMetaTag(strictCsp);
       htmlPluginData.html = strictCspModule.serializeDom();
     }
@@ -63,9 +63,10 @@ class StrictCspHtmlWebpackPlugin {
     compiler.hooks.compilation.tap(
       'StrictCspHtmlWebpackPlugin',
       (compilation) => {
-        const hook = typeof this.htmlWebpackPlugin.getHooks === 'function' ?
-          this.htmlWebpackPlugin.getHooks(compilation).beforeEmit : // html-webpack-plugin v4 and above
-          compilation.hooks.htmlWebpackPluginAfterHtmlProcessing; // html-webpack-plugin v3
+        const hook =
+          typeof this.htmlWebpackPlugin.getHooks === 'function'
+            ? this.htmlWebpackPlugin.getHooks(compilation).beforeEmit // html-webpack-plugin v4 and above
+            : compilation.hooks.htmlWebpackPluginAfterHtmlProcessing; // html-webpack-plugin v3
 
         hook.tapAsync(
           'StrictCspHtmlWebpackPlugin',
