@@ -1,6 +1,6 @@
 {
   "name": "strict-csp-html-webpack-plugin",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A webpack plugin that adds a hash-based strict CSP to help protect your site against XSS attacks.",
   "main": "plugin.js",
   "repository": {
