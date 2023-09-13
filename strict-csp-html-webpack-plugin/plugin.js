@@ -18,6 +18,7 @@ const strictCspLib = require('strict-csp');
 
 const defaultOptions = {
   enabled: true,
+  enableBrowserFallbacks: true,
   enableTrustedTypes: false,
   enableUnsafeEval: false,
 };
@@ -42,9 +43,9 @@ class StrictCspHtmlWebpackPlugin {
       const strictCspModule = new strictCspLib.StrictCsp(htmlPluginData.html);
       strictCspModule.refactorSourcedScriptsForHashBasedCsp();
       const scriptHashes = strictCspModule.hashAllInlineScripts();
-      const { enableTrustedTypes, enableUnsafeEval } = this.options;
+      const { enableBrowserFallbacks, enableTrustedTypes, enableUnsafeEval } = this.options;
       const strictCsp = strictCspLib.StrictCsp.getStrictCsp(scriptHashes, {
-        enableBrowserFallbacks: true,
+        enableBrowserFallbacks,
         enableTrustedTypes,
         enableUnsafeEval,
       });
