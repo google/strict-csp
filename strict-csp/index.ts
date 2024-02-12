@@ -59,10 +59,10 @@ export class StrictCsp {
       enableTrustedTypes?: boolean;
       enableUnsafeEval?: boolean;
     } = {
-      enableBrowserFallbacks: true,
-      enableTrustedTypes: false,
-      enableUnsafeEval: false,
-    }
+        enableBrowserFallbacks: true,
+        enableTrustedTypes: false,
+        enableUnsafeEval: false,
+      }
   ): string {
     hashes = hashes || [];
     let strictCspTemplate = {
@@ -131,6 +131,28 @@ export class StrictCsp {
   }
 
   /**
+   * Creates a new script tag and adds it to the body element.
+   * 
+   * @param script JS content of the script to be added.
+   */
+  appendScriptToBody(script: string): void {
+    const newScript = cheerio.load('<script>')('script');
+    newScript.text(script);
+    newScript.appendTo(this.$('body'));
+  }
+
+  /**
+  * Creates a new script tag and adds it to the body element.
+  * 
+  * @param script JS content of the script to be added.
+  */
+  prependScriptToBody(script: string): void {
+    const newScript = cheerio.load('<script>')('script');
+    newScript.text(script);
+    newScript.prependTo(this.$('body'));
+  }
+
+  /**
    * Replaces all sourced scripts with a single inline script that can be hashed
    */
   refactorSourcedScriptsForHashBasedCsp(): void {
@@ -150,9 +172,7 @@ export class StrictCsp {
       return;
     }
 
-    const newScript = cheerio.load('<script>')('script');
-    newScript.text(loaderScript);
-    newScript.appendTo(this.$('body'));
+    this.appendScriptToBody(loaderScript);
   }
 
   /**
@@ -197,5 +217,90 @@ export class StrictCsp {
       .update(scriptText, 'utf-8')
       .digest('base64');
     return `'${StrictCsp.HASH_FUNCTION}-${hash}'`;
+  }
+}
+
+/**
+ * Module for adding a Trusted Types policy meta tag and the browser scripts for surfacing violations.
+ * 
+ * There is already an option above for adding a strict CSP with a Trusted Types directive, let's see if it's better to unify that by adding more options to the options above.
+ */
+export class TrustedTypes {
+  private strictCsp: StrictCsp;
+  private reportUri: string | undefined;
+
+  constructor(html: string, reportUri: string | undefined = undefined) {
+    this.strictCsp = new StrictCsp(html);
+    this.reportUri = reportUri;
+  }
+
+  /**
+   * Adds a Trusted Types enforcement meta tag.
+   */
+  addTrustedTypes(): void {
+    this.strictCsp.addMetaTag("require-trusted-types-for 'script'");
+  }
+
+  /**
+   * Uses the Reporting Observer API to send Trusted Types violation reports to an external endpoint specified in the constructor.
+   * 
+   * Note that this is not needed if we are adding the script to enable report-only mode.
+   * @returns 
+   */
+  addReporterScript(): void {
+    if (!this.reportUri) {
+      return;
+    }
+    const reporterScript = TrustedTypes.createReporterScript(this.reportUri);
+    this.strictCsp.appendScriptToBody(reporterScript);
+  }
+
+  /**
+   * Uses the Default Policy to mimic the behavior of a report-only mode and send violations to an external endpoint.
+   * @returns 
+   */
+  addReportOnlyMode(): void {
+    if (!this.reportUri) {
+      return;
+    }
+    const reporterScript = TrustedTypes.createReportOnlyModeScript(this.reportUri);
+    if (!reporterScript) {
+      return;
+    }
+    this.strictCsp.prependScriptToBody(reporterScript);
+  }
+
+  /**
+   * Get the underlying StrictCsp module so that further meta tags can be added.
+   * @returns StrictCsp that is modifying the page.
+   */
+  getStrictCspModule(): StrictCsp {
+    return this.strictCsp;
+  }
+
+  /**
+   * Returns the JS code for sending Trusted Types violation reports to the specified Report URI.
+   * @param reportUri 
+   * @returns 
+   */
+  static createReporterScript(reportUri: string): string {
+    return `
+
+    `
+  }
+
+  /**
+   * Returns the JS code for using the default policy to 
+   * @param reportUri 
+   * @returns 
+   */
+  static createReportOnlyModeScript(reportUri: string): string {
+    return `
+    if (self.trustedTypes && !self.trustedTypes.defaultPolicy) {
+      self.trustedTypes.createPolicy('default' {
+        
+      });
+    }
+    `
   }
 }
