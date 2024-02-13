@@ -97,9 +97,10 @@ This is done only once.
 
 ## To reset linking
 
-`sh ./scripts/undo-dev-setup.sh`
+`sh ./undo-dev-setup.sh`
 
 ## To troubleshoot individual linking issues
 
 `npm uninstall`
+
 `npm ls --depth=0 --link=true`
