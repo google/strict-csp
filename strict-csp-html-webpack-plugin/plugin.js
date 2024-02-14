@@ -20,6 +20,7 @@ const defaultOptions = {
   enabled: true,
   enableTrustedTypes: false,
   enableUnsafeEval: false,
+  enableTrustedTypesReportOnly: false,
 };
 
 class StrictCspHtmlWebpackPlugin {
@@ -39,10 +40,24 @@ class StrictCspHtmlWebpackPlugin {
    */
   processCsp(compilation, htmlPluginData, compileCb) {
     if (this.options.enabled) {
-      const strictCspModule = new strictCspLib.StrictCsp(htmlPluginData.html);
-      strictCspModule.refactorSourcedScriptsForHashBasedCsp();
+      const { enableTrustedTypes, enableTrustedTypesReportOnly, enableUnsafeEval, reportUri } = this.options;
+      var strictCspModule;
+      if (enableTrustedTypes) {
+        const trustedTypesModule = new strictCspLib.TrustedTypes(htmlPluginData.html, reportUri);
+        trustedTypesModule.addTrustedTypes();
+        if (enableTrustedTypesReportOnly) {
+          // Pass through Trusted Types violations.
+          trustedTypesModule.addReportOnlyMode();
+        } else {
+          // Still let the browser block Trusted Types violations but send the reports to the endpoint.
+          trustedTypesModule.addReporterScript();
+        }
+        strictCspModule = trustedTypesModule.getStrictCspModule();
+      } else {
+        strictCspModule = new strictCspLib.StrictCsp(htmlPluginData.html);
+      }
+      strictCspModule.refactorSourcedScriptsForHashBasedCsp(enableTrustedTypes);
       const scriptHashes = strictCspModule.hashAllInlineScripts();
-      const { enableTrustedTypes, enableUnsafeEval } = this.options;
       const strictCsp = strictCspLib.StrictCsp.getStrictCsp(scriptHashes, {
         enableBrowserFallbacks: true,
         enableTrustedTypes,
