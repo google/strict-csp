@@ -33,7 +33,7 @@ export class StrictCsp {
   }
 
   serializeDom(): string {
-    return this.$.html();
+    return this.$.root().html();
   }
 
   /**
