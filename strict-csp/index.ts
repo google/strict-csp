@@ -134,23 +134,21 @@ export class StrictCsp {
    * Replaces all sourced scripts with a single inline script that can be hashed
    */
   refactorSourcedScriptsForHashBasedCsp(): void {
-    const srcList = this.$(StrictCsp.SOURCED_SCRIPT_SELECTOR)
+    const scriptInfoList = this.$(StrictCsp.SOURCED_SCRIPT_SELECTOR)
       .map((i, script) => {
         const src = this.$(script).attr('src');
+        const type = this.$(script).attr('type');
         this.$(script).remove();
-        return src;
+        return {src, type};
       })
-      .filter((src) => src !== null)
+      .filter((info) => info.src !== null)
       .get();
 
-    const loaderScript = StrictCsp.createLoaderScript(srcList);
+    const loaderScript = StrictCsp.createLoaderScript(scriptInfoList);
     if (!loaderScript) {
       return;
     }
 
-    // const hash = StrictCsp.hashInlineScript(loaderScript);
-    // const comment = cheerio.load(`<!-- CSP hash: ${hash} -->`).root();
-    // comment.appendTo(this.$('body'));
     const newScript = cheerio.load('<script>')('script');
     newScript.text(loaderScript);
     newScript.appendTo(this.$('body'));
@@ -167,18 +165,21 @@ export class StrictCsp {
 
   /**
    * Returns JS code for dynamically loading sourced (external) scripts.
-   * @param srcList A list of paths for scripts that should be loaded.
+   * @param scriptInfoList A list of objects containing src and type for scripts that should be loaded
    */
-  static createLoaderScript(srcList: string[]): string | undefined {
-    if (!srcList.length) {
+  static createLoaderScript(scriptInfoList: {src: string, type?: string}[]): string | undefined {
+    if (!scriptInfoList.length) {
       return undefined;
     }
-    const srcListFormatted = srcList.map((s) => `'${s}'`).join();
+
     return `
-    var scripts = [${srcListFormatted}];
-    scripts.forEach(function(scriptUrl) {
+    var scripts = ${JSON.stringify(scriptInfoList)};
+    scripts.forEach(function(scriptInfo) {
       var s = document.createElement('script');
-      s.src = scriptUrl;
+      s.src = scriptInfo.src;
+      if (scriptInfo.type) {
+        s.type = scriptInfo.type;
+      }
       s.async = false; // preserve execution order.
       document.body.appendChild(s);
     });\n    `;
