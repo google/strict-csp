@@ -25,7 +25,7 @@ A strict CSP, added in the form of an HTML `meta` tag, looks as follows:
 
 ### Step 1: install the plugin
 
-`npm i --save strict-csp-html-webpack-plugin@beta`
+`npm i --save strict-csp-html-webpack-plugin@latest`
 
 (or with `yarn`)
 
