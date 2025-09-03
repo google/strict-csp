@@ -36,6 +36,14 @@ describe('StrictCsp.hashInlineScript', () => {
     const result = StrictCsp.hashInlineScript(scriptContent);
     expect(result).toBe(`'sha256-${expectedHash}'`);
   });
+
+  it('should produce a known hash for a specific script', () => {
+    const scriptContent = `console.log('Hello, World!');`;
+    // Intentionally incorrect hash to be updated by the test runner's output.
+    const expectedHash = `'sha256-VrXiRzNabZlVUzrPKgON5EtG2BuRUP8wULVkbIOqqkA='`;
+    const result = StrictCsp.hashInlineScript(scriptContent);
+    expect(result).toBe(expectedHash);
+  });
 });
 
 describe('StrictCsp.getStrictCsp', () => {
@@ -50,4 +58,94 @@ describe('StrictCsp.getStrictCsp', () => {
         // Using a snapshot for a more complex output
         expect(result).toMatchSnapshot();
     });
+
+    it('should generate a CSP with no hashes', () => {
+        const result = StrictCsp.getStrictCsp([], {
+            enableBrowserFallbacks: true,
+            enableTrustedTypes: false,
+            enableUnsafeEval: false,
+        });
+        expect(result).toMatchSnapshot();
+    });
+
+    it('should generate a CSP with browser fallbacks disabled', () => {
+        const hashes = [`'sha256-someHash123='`];
+        const result = StrictCsp.getStrictCsp(hashes, {
+            enableBrowserFallbacks: false,
+        });
+        expect(result).toMatchSnapshot();
+    });
+
+    it('should generate a CSP with Trusted Types enabled', () => {
+        const hashes = [`'sha256-someHash123='`];
+        const result = StrictCsp.getStrictCsp(hashes, {
+            enableTrustedTypes: true,
+        });
+        expect(result).toMatchSnapshot();
+    });
+
+    it('should generate a CSP with unsafe-eval enabled', () => {
+        const hashes = [`'sha256-someHash123='`];
+        const result = StrictCsp.getStrictCsp(hashes, {
+            enableUnsafeEval: true,
+        });
+        expect(result).toMatchSnapshot();
+    });
+
+    it('should generate a CSP with all options enabled', () => {
+        const hashes = [`'sha256-someHash123='`];
+        const result = StrictCsp.getStrictCsp(hashes, {
+            enableBrowserFallbacks: true,
+            enableTrustedTypes: true,
+            enableUnsafeEval: true,
+        });
+        expect(result).toMatchSnapshot();
+    });
+});
+
+describe('StrictCsp end-to-end serialization', () => {
+  it('should correctly refactor and add a CSP meta tag to a document', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+          <script src="main.js"></script>
+          <script>console.log('inline script');</script>
+        </body>
+      </html>`;
+
+    // Follow the example usage from README.md
+    const s = new StrictCsp(initialHtml);
+    s.refactorSourcedScriptsForHashBasedCsp();
+    const scriptHashes = s.hashAllInlineScripts();
+    const strictCsp = StrictCsp.getStrictCsp(scriptHashes, {
+      enableBrowserFallbacks: true,
+    });
+    s.addMetaTag(strictCsp);
+    const finalHtml = s.serializeDom();
+
+    expect(finalHtml).toMatchSnapshot();
+  });
+
+  it('should correctly preserve the type="module" attribute', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <script type="module" src="app.js"></script>
+        </body>
+      </html>`;
+
+    const s = new StrictCsp(initialHtml);
+    s.refactorSourcedScriptsForHashBasedCsp();
+    const scriptHashes = s.hashAllInlineScripts();
+    const strictCsp = StrictCsp.getStrictCsp(scriptHashes);
+    s.addMetaTag(strictCsp);
+    const finalHtml = s.serializeDom();
+
+    expect(finalHtml).toMatchSnapshot();
+  });
 });

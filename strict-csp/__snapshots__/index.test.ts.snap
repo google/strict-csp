@@ -1,3 +1,59 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
+exports[`StrictCsp end-to-end serialization should correctly preserve the type="module" attribute 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <body>
+          
+        <script>
+    var scripts = [{"src":"app.js","type":"module"}];
+    scripts.forEach(function(scriptInfo) {
+      var s = document.createElement('script');
+      s.src = scriptInfo.src;
+      if (scriptInfo.type) {
+        s.type = scriptInfo.type;
+      }
+      s.async = false; // preserve execution order.
+      document.body.appendChild(s);
+    });
+    </script></body>
+      </html>"
+`;
+
+exports[`StrictCsp end-to-end serialization should correctly refactor and add a CSP meta tag to a document 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-dIwX3/r4Zl0MpqRsxWkARQ0s7rnPg1QangRovs97KCI=' 'sha256-gUWJDv5nV7v/UTSPGBpQRi+C4y3R9HVuK3jrk0ZjwGc=' https: 'unsafe-inline';object-src 'none';base-uri 'self';">
+          <title>Test</title>
+        </head>
+        <body>
+          
+          <script>console.log('inline script');</script>
+        <script>
+    var scripts = [{"src":"main.js"}];
+    scripts.forEach(function(scriptInfo) {
+      var s = document.createElement('script');
+      s.src = scriptInfo.src;
+      if (scriptInfo.type) {
+        s.type = scriptInfo.type;
+      }
+      s.async = false; // preserve execution order.
+      document.body.appendChild(s);
+    });
+    </script></body>
+      </html>"
+`;
+
+exports[`StrictCsp.getStrictCsp should generate a CSP with Trusted Types enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
+
+exports[`StrictCsp.getStrictCsp should generate a CSP with all options enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
+
+exports[`StrictCsp.getStrictCsp should generate a CSP with browser fallbacks disabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=';object-src 'none';base-uri 'self';"`;
+
+exports[`StrictCsp.getStrictCsp should generate a CSP with no hashes 1`] = `"script-src 'strict-dynamic' https:;object-src 'none';base-uri 'self';"`;
+
+exports[`StrictCsp.getStrictCsp should generate a CSP with unsafe-eval enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' 'unsafe-eval';object-src 'none';base-uri 'self';"`;
+
 exports[`StrictCsp.getStrictCsp should generate a valid strict CSP policy 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' 'sha256-anotherHash456=' https: 'unsafe-inline';object-src 'none';base-uri 'self';"`;
