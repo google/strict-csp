@@ -33,7 +33,7 @@ export class StrictCsp {
   }
 
   serializeDom(): string {
-    return this.$.root().html();
+    return this.$.root().html() || '';
   }
 
   /**
@@ -135,14 +135,15 @@ export class StrictCsp {
    */
   refactorSourcedScriptsForHashBasedCsp(): void {
     const scriptInfoList = this.$(StrictCsp.SOURCED_SCRIPT_SELECTOR)
-      .map((i, script) => {
+      .get()
+      .map((script) => {
         const src = this.$(script).attr('src');
         const type = this.$(script).attr('type');
         this.$(script).remove();
         return {src, type};
       })
-      .filter((info) => info.src !== null)
-      .get();
+      .filter((info): info is {src: string, type: string | undefined} =>
+          info.src !== undefined);
 
     const loaderScript = StrictCsp.createLoaderScript(scriptInfoList);
     if (!loaderScript) {

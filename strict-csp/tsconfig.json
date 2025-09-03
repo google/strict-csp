@@ -12,5 +12,12 @@
     "noImplicitAny": true,
     "esModuleInterop": true,
     "resolveJsonModule": true
-  }
+  },
+  "include": [
+    "index.ts"
+  ],
+  "exclude": [
+    "**/*.test.ts",
+    "jest.config.js"
+  ]
 }
