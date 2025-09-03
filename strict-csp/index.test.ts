@@ -39,7 +39,6 @@ describe('StrictCsp.hashInlineScript', () => {
 
   it('should produce a known hash for a specific script', () => {
     const scriptContent = `console.log('Hello, World!');`;
-    // Intentionally incorrect hash to be updated by the test runner's output.
     const expectedHash = `'sha256-VrXiRzNabZlVUzrPKgON5EtG2BuRUP8wULVkbIOqqkA='`;
     const result = StrictCsp.hashInlineScript(scriptContent);
     expect(result).toBe(expectedHash);
