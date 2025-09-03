@@ -9,7 +9,7 @@
     "auto-csp": "npm run build && node build/index.js",
     "lint": "eslint . --ext .ts",
     "tsc": "tsc",
-    "test": "tsc --noEmit && jest"
+    "test": "npm run build && tsc --noEmit && jest"
   },
   "keywords": [
     "csp",
@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@types/cheerio": "^0.22.23",
-    "cheerio": "^1.0.0-rc.5"
+    "cheerio": "^1.1.2"
   },
   "devDependencies": {
     "@types/jest": "^30.0.0",

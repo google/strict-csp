@@ -8,12 +8,15 @@
     "url": "https://github.com/google/strict-csp.git",
     "directory": "strict-csp-html-webpack-plugin"
   },
-  "dependencies": {
-    "strict-csp": "^1.0.0-beta.1"
+  "devDependencies": {
+    "cheerio": "^1.1.2",
+    "html-webpack-plugin": "^5.6.4",
+    "jest": "^30.1.3",
+    "webpack": "^5.101.3",
+    "webpack-cli": "^6.0.1"
   },
-  "devDependencies": {},
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "cd .. && bash ./dev-setup.sh && cd ./strict-csp-html-webpack-plugin && jest && cd .. && bash ./undo-dev-setup.sh"
   },
   "author": "Lukas Weichselbaum <lwe@google.com>",
   "contributors": [
