@@ -1,0 +1,3 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`StrictCsp.getStrictCsp should generate a valid strict CSP policy 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' 'sha256-anotherHash456=' https: 'unsafe-inline';object-src 'none';base-uri 'self';"`;
