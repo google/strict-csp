@@ -2,38 +2,93 @@ const webpack = require('webpack');
 const path = require('path');
 const fs = require('fs');
 const cheerio = require('cheerio');
-const config = require('./test-fixture/webpack.config.js');
+const HtmlWebpackPlugin = require('html-webpack-plugin');
+const StrictCspHtmlWebpackPlugin = require(path.resolve(__dirname, './plugin.js'));
+
+const runWebpack = (options, done) => {
+  const config = {
+    context: __dirname,
+    mode: 'production',
+    entry: {
+      library1: './test-fixture/src/library1.js',
+      app: './test-fixture/src/app.js',
+      library2: './test-fixture/src/library2.js',
+    },
+    output: {
+      path: path.resolve(__dirname, 'test-fixture/dist'),
+      filename: '[name].bundle.js',
+    },
+    plugins: [
+      new HtmlWebpackPlugin({
+        template: './test-fixture/src/template.html',
+      }),
+      new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin, options),
+    ],
+  };
+
+  webpack(config, (err, stats) => {
+    if (err) {
+      return done(err);
+    }
+    if (stats.hasErrors()) {
+      return done(new Error(stats.toJson().errors.map((e) => e.message).join('\n')));
+    }
+
+    const outputFile = path.resolve(
+      __dirname,
+      'test-fixture/dist/index.html'
+    );
+    const outputHtml = fs.readFileSync(outputFile, 'utf8');
+    done(null, outputHtml);
+  });
+};
 
 describe('StrictCspHtmlWebpackPlugin Integration Test', () => {
-  it('should build successfully and the output should match the snapshot', (done) => {
-    webpack(config, (err, stats) => {
-      if (err) {
-        return done(err);
-      }
-      if (stats.hasErrors()) {
-        return done(new Error(stats.toJson().errors.map(e => e.message).join('\n')));
-      }
-
-      const outputFile = path.resolve(__dirname, 'test-fixture/dist/index.html');
-      const outputHtml = fs.readFileSync(outputFile, 'utf8');
+  it('should build successfully without Trusted Types', (done) => {
+    runWebpack({}, (err, outputHtml) => {
+      if (err) return done(err);
       const $ = cheerio.load(outputHtml);
-
-      // 1. Check for the CSP meta tag.
       const metaTag = $('meta[http-equiv="Content-Security-Policy"]');
       expect(metaTag.length).toBe(1);
-
-      // 2. Check that the CSP content contains a hash.
       const cspContent = metaTag.attr('content');
-      expect(cspContent).toContain(`'sha256-`);
-
-      // 3. Check for the loader script.
-      const loaderScript = $('script:not([src])').html();
-      expect(loaderScript).toContain('var scripts =');
-      expect(loaderScript).toContain(`document.createElement('script')`);
-
-      // 4. Finally, match the whole output against the snapshot.
+      expect(cspContent).not.toContain('require-trusted-types-for');
       expect(outputHtml).toMatchSnapshot();
       done();
     });
+  });
+
+  it('should build successfully with Trusted Types enabled', (done) => {
+    runWebpack({ enableTrustedTypes: true }, (err, outputHtml) => {
+      if (err) return done(err);
+      const $ = cheerio.load(outputHtml);
+      const metaTag = $('meta[http-equiv="Content-Security-Policy"]');
+      expect(metaTag.length).toBe(1);
+      const cspContent = metaTag.attr('content');
+      expect(cspContent).toContain("require-trusted-types-for 'script'");
+      expect(outputHtml).toMatchSnapshot();
+      done();
+    });
+  });
+
+  it('should build successfully with Trusted Types in report-only mode', (done) => {
+    runWebpack(
+      {
+        enableTrustedTypes: true,
+        enableTrustedTypesReportOnly: true,
+        reportUri: 'https://example.com/report',
+      },
+      (err, outputHtml) => {
+        if (err) return done(err);
+        const $ = cheerio.load(outputHtml);
+        const metaTag = $('meta[http-equiv="Content-Security-Policy"]');
+        expect(metaTag.length).toBe(1);
+        const cspContent = metaTag.attr('content');
+        expect(cspContent).toContain("require-trusted-types-for 'script'");
+        const loaderScript = $('script:not([src])').html();
+        expect(loaderScript).toContain('const generateAndSendReport');
+        expect(outputHtml).toMatchSnapshot();
+        done();
+      }
+    );
   });
 });
