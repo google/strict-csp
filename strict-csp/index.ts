@@ -17,19 +17,27 @@
 import * as crypto from 'crypto';
 import * as cheerio from 'cheerio';
 
+/** CSP and Trusted Types configuration options. */
+export interface StrictCspOptions {
+  reportUri?: string;
+  enableTrustedTypesReportOnly?: boolean;
+}
+
 /** Module for enabling a hash-based strict Content Security Policy. */
 export class StrictCsp {
   private static readonly HASH_FUNCTION = 'sha256';
   private static readonly INLINE_SCRIPT_SELECTOR = 'script:not([src])';
   private static readonly SOURCED_SCRIPT_SELECTOR = 'script[src]';
   private $: cheerio.Root;
+  private options: StrictCspOptions;
 
-  constructor(html: string) {
+  constructor(html: string, options: StrictCspOptions = {}) {
     this.$ = cheerio.load(html, {
       decodeEntities: false,
       _useHtmlParser2: true,
       xmlMode: false,
     });
+    this.options = options;
   }
 
   serializeDom(): string {
@@ -59,10 +67,10 @@ export class StrictCsp {
       enableTrustedTypes?: boolean;
       enableUnsafeEval?: boolean;
     } = {
-        enableBrowserFallbacks: true,
-        enableTrustedTypes: false,
-        enableUnsafeEval: false,
-      }
+      enableBrowserFallbacks: true,
+      enableTrustedTypes: false,
+      enableUnsafeEval: false,
+    }
   ): string {
     hashes = hashes || [];
     let strictCspTemplate = {
@@ -112,6 +120,29 @@ export class StrictCsp {
   }
 
   /**
+   * Configures Trusted Types by adding the necessary reporting scripts.
+   */
+  configureTrustedTypes(): void {
+    if (this.options.enableTrustedTypesReportOnly) {
+      const reportOnlyScript = StrictCsp.createReportOnlyModeScript(
+        this.options.reportUri
+      );
+      this.prependScriptToBody(reportOnlyScript);
+    } else {
+      if (!this.options.reportUri) {
+        this.appendScriptToBody(
+          `console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")`
+        );
+        return;
+      }
+      const reporterScript = StrictCsp.createReporterScript(
+        this.options.reportUri
+      );
+      this.appendScriptToBody(reporterScript);
+    }
+  }
+
+  /**
    * Enables a CSP via a meta tag at the beginning of the document.
    * Warning: It's recommended to set CSP as HTTP response header instead of
    * using a meta tag. Injections before the meta tag will not be covered by CSP
@@ -132,21 +163,21 @@ export class StrictCsp {
 
   /**
    * Creates a new script tag and adds it to the body element.
-   * 
+   *
    * @param script JS content of the script to be added.
    */
-  appendScriptToBody(script: string): void {
+  private appendScriptToBody(script: string): void {
     const newScript = cheerio.load('<script>')('script');
     newScript.text(script);
     newScript.appendTo(this.$('body'));
   }
 
   /**
-  * Creates a new script tag and adds it to the body element.
-  * 
-  * @param script JS content of the script to be added.
-  */
-  prependScriptToBody(script: string): void {
+   * Creates a new script tag and adds it to the body element.
+   *
+   * @param script JS content of the script to be added.
+   */
+  private prependScriptToBody(script: string): void {
     const newScript = cheerio.load('<script>')('script');
     newScript.text(script);
     newScript.prependTo(this.$('body'));
@@ -162,12 +193,17 @@ export class StrictCsp {
         const src = this.$(script).attr('src');
         const type = this.$(script).attr('type');
         this.$(script).remove();
-        return {src, type};
+        return { src, type };
       })
-      .filter((info): info is {src: string, type: string | undefined} =>
-          info.src !== undefined);
+      .filter(
+        (info): info is { src: string; type: string | undefined } =>
+          info.src !== undefined
+      );
 
-    const loaderScript = StrictCsp.createLoaderScript(scriptInfoList, enableTrustedTypes);
+    const loaderScript = StrictCsp.createLoaderScript(
+      scriptInfoList,
+      enableTrustedTypes
+    );
     if (!loaderScript) {
       return;
     }
@@ -188,15 +224,20 @@ export class StrictCsp {
    * Returns JS code for dynamically loading sourced (external) scripts.
    * @param scriptInfoList A list of objects containing src and type for scripts that should be loaded
    */
-  static createLoaderScript(scriptInfoList: {src: string, type?: string}[], enableTrustedTypes = false): string | undefined {
+  private static createLoaderScript(
+    scriptInfoList: { src: string; type?: string }[],
+    enableTrustedTypes = false
+  ): string | undefined {
     if (!scriptInfoList.length) {
       return undefined;
     }
-    return enableTrustedTypes ? `
+    return enableTrustedTypes
+      ? `
     var scripts = ${JSON.stringify(scriptInfoList)};
+    var scriptSrcs = new Set(scripts.map(function(s) { return s.src; }));
     var policy = self.trustedTypes && self.trustedTypes.createPolicy ?
       self.trustedTypes.createPolicy('strict-csp#loader', {createScriptURL: function(u) {
-        return scripts.includes(u) ? u : null;
+        return scriptSrcs.has(u) ? u : null;
       }}) : { createScriptURL: function(u) { return u; } };
     scripts.forEach(function(scriptInfo) {
       var s = document.createElement('script');
@@ -206,7 +247,9 @@ export class StrictCsp {
       }
       s.async = false; // preserve execution order.
       document.body.appendChild(s);
-    });\n    ` :`
+    });
+    `
+      : `
     var scripts = ${JSON.stringify(scriptInfoList)};
     scripts.forEach(function(scriptInfo) {
       var s = document.createElement('script');
@@ -216,7 +259,8 @@ export class StrictCsp {
       }
       s.async = false; // preserve execution order.
       document.body.appendChild(s);
-    });\n    `;
+    });
+    `;
   }
 
   /**
@@ -231,67 +275,13 @@ export class StrictCsp {
       .digest('base64');
     return `'${StrictCsp.HASH_FUNCTION}-${hash}'`;
   }
-}
-
-/**
- * Module for adding a Trusted Types policy meta tag and the browser scripts for surfacing violations.
- * 
- * There is already an option above for adding a strict CSP with a Trusted Types directive, let's see if it's better to unify that by adding more options to the options above.
- */
-export class TrustedTypes {
-  private strictCsp: StrictCsp;
-  private reportUri: string | undefined;
-
-  constructor(html: string, reportUri: string | undefined = undefined) {
-    this.strictCsp = new StrictCsp(html);
-    this.reportUri = reportUri;
-  }
-
-  /**
-   * Adds a Trusted Types enforcement meta tag.
-   */
-  addTrustedTypes(): void {
-    this.strictCsp.addMetaTag("require-trusted-types-for 'script'");
-  }
-
-  /**
-   * Uses the Reporting Observer API to send Trusted Types violation reports to an external endpoint specified in the constructor.
-   * 
-   * Note that this is not needed if we are adding the script to enable report-only mode.
-   * @returns 
-   */
-  addReporterScript(): void {
-    if (!this.reportUri) {
-      this.strictCsp.appendScriptToBody(`console.error("No reportUri provided in the webpack config. Trusted Types reports will not be sent to a remote endpoint.")`);
-      return;
-    }
-    const reporterScript = TrustedTypes.createReporterScript(this.reportUri);
-    this.strictCsp.appendScriptToBody(reporterScript);
-  }
-
-  /**
-   * Uses the Default Policy to mimic the behavior of a report-only mode and send violations to an external endpoint.
-   * @returns 
-   */
-  addReportOnlyMode(): void {
-    const reporterScript = TrustedTypes.createReportOnlyModeScript(this.reportUri);
-    this.strictCsp.prependScriptToBody(reporterScript);
-  }
-
-  /**
-   * Get the underlying StrictCsp module so that further meta tags can be added.
-   * @returns StrictCsp that is modifying the page.
-   */
-  getStrictCspModule(): StrictCsp {
-    return this.strictCsp;
-  }
 
   /**
    * Returns the JS code for sending Trusted Types violation reports to the specified Report URI.
-   * @param reportUri 
-   * @returns 
+   * @param reportUri
+   * @returns
    */
-  static createReporterScript(reportUri: string): string {
+  private static createReporterScript(reportUri: string): string {
     return `
     if (self.ReportingObserver) {
       const options = {
@@ -332,21 +322,23 @@ export class TrustedTypes {
     } else {
       console.error('No ReportingObserver API present. Content Security Policy and Trusted Types reports will not be sent to the reporting URI.');
     }
-    `
+    `;
   }
 
   /**
-   * Returns the JS code for using the default policy to 
-   * @param reportUri 
-   * @returns 
+   * Returns the JS code for using the default policy to
+   * @param reportUri
+   * @returns
    */
-  static createReportOnlyModeScript(reportUri: string | undefined): string {
+  private static createReportOnlyModeScript(
+    reportUri: string | undefined
+  ): string {
     var reportingScript;
     if (reportUri) {
       reportingScript = `
       const generateAndSendReport = function(sample) {
         const stack = (new Error()).stack;
-        const regex = /([^ \()]+):(\\d+):(\\d+)/g;
+        const regex = /([^ \()]+):(\d+):(\d+)/g;
         let match;
         let lastMatch;
         while ((match = regex.exec(stack)) !== null) {
@@ -400,6 +392,6 @@ export class TrustedTypes {
         },
       });
     }
-    `
+    `;
   }
 }

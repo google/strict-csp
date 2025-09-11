@@ -46,60 +46,60 @@ describe('StrictCsp.hashInlineScript', () => {
 });
 
 describe('StrictCsp.getStrictCsp', () => {
-    it('should generate a valid strict CSP policy', () => {
-        const hashes = [`'sha256-someHash123='`, `'sha256-anotherHash456='`];
-        const result = StrictCsp.getStrictCsp(hashes, {
-            enableBrowserFallbacks: true,
-            enableTrustedTypes: false,
-            enableUnsafeEval: false,
-        });
-
-        // Using a snapshot for a more complex output
-        expect(result).toMatchSnapshot();
+  it('should generate a valid strict CSP policy', () => {
+    const hashes = [`'sha256-someHash123='`, `'sha256-anotherHash456='`];
+    const result = StrictCsp.getStrictCsp(hashes, {
+      enableBrowserFallbacks: true,
+      enableTrustedTypes: false,
+      enableUnsafeEval: false,
     });
 
-    it('should generate a CSP with no hashes', () => {
-        const result = StrictCsp.getStrictCsp([], {
-            enableBrowserFallbacks: true,
-            enableTrustedTypes: false,
-            enableUnsafeEval: false,
-        });
-        expect(result).toMatchSnapshot();
-    });
+    // Using a snapshot for a more complex output
+    expect(result).toMatchSnapshot();
+  });
 
-    it('should generate a CSP with browser fallbacks disabled', () => {
-        const hashes = [`'sha256-someHash123='`];
-        const result = StrictCsp.getStrictCsp(hashes, {
-            enableBrowserFallbacks: false,
-        });
-        expect(result).toMatchSnapshot();
+  it('should generate a CSP with no hashes', () => {
+    const result = StrictCsp.getStrictCsp([], {
+      enableBrowserFallbacks: true,
+      enableTrustedTypes: false,
+      enableUnsafeEval: false,
     });
+    expect(result).toMatchSnapshot();
+  });
 
-    it('should generate a CSP with Trusted Types enabled', () => {
-        const hashes = [`'sha256-someHash123='`];
-        const result = StrictCsp.getStrictCsp(hashes, {
-            enableTrustedTypes: true,
-        });
-        expect(result).toMatchSnapshot();
+  it('should generate a CSP with browser fallbacks disabled', () => {
+    const hashes = [`'sha256-someHash123='`];
+    const result = StrictCsp.getStrictCsp(hashes, {
+      enableBrowserFallbacks: false,
     });
+    expect(result).toMatchSnapshot();
+  });
 
-    it('should generate a CSP with unsafe-eval enabled', () => {
-        const hashes = [`'sha256-someHash123='`];
-        const result = StrictCsp.getStrictCsp(hashes, {
-            enableUnsafeEval: true,
-        });
-        expect(result).toMatchSnapshot();
+  it('should generate a CSP with Trusted Types enabled', () => {
+    const hashes = [`'sha256-someHash123='`];
+    const result = StrictCsp.getStrictCsp(hashes, {
+      enableTrustedTypes: true,
     });
+    expect(result).toMatchSnapshot();
+  });
 
-    it('should generate a CSP with all options enabled', () => {
-        const hashes = [`'sha256-someHash123='`];
-        const result = StrictCsp.getStrictCsp(hashes, {
-            enableBrowserFallbacks: true,
-            enableTrustedTypes: true,
-            enableUnsafeEval: true,
-        });
-        expect(result).toMatchSnapshot();
+  it('should generate a CSP with unsafe-eval enabled', () => {
+    const hashes = [`'sha256-someHash123='`];
+    const result = StrictCsp.getStrictCsp(hashes, {
+      enableUnsafeEval: true,
     });
+    expect(result).toMatchSnapshot();
+  });
+
+  it('should generate a CSP with all options enabled', () => {
+    const hashes = [`'sha256-someHash123='`];
+    const result = StrictCsp.getStrictCsp(hashes, {
+      enableBrowserFallbacks: true,
+      enableTrustedTypes: true,
+      enableUnsafeEval: true,
+    });
+    expect(result).toMatchSnapshot();
+  });
 });
 
 describe('StrictCsp end-to-end serialization', () => {
@@ -145,6 +145,94 @@ describe('StrictCsp end-to-end serialization', () => {
     s.addMetaTag(strictCsp);
     const finalHtml = s.serializeDom();
 
+    expect(finalHtml).toMatchSnapshot();
+  });
+});
+
+describe('StrictCsp with TrustedTypes', () => {
+  it('should add a reporter script', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        </body>
+      </html>`;
+    const s = new StrictCsp(initialHtml, {
+      reportUri: 'https://example.com/report',
+    });
+    s.configureTrustedTypes();
+    const finalHtml = s.serializeDom();
+    expect(finalHtml).toMatchSnapshot();
+  });
+
+  it('should add a report-only script', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        </body>
+      </html>`;
+    const s = new StrictCsp(initialHtml, {
+      reportUri: 'https://example.com/report',
+      enableTrustedTypesReportOnly: true,
+    });
+    s.configureTrustedTypes();
+    const finalHtml = s.serializeDom();
+    expect(finalHtml).toMatchSnapshot();
+  });
+
+  it('should handle a missing reportUri for the reporter script', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        </body>
+      </html>`;
+    const s = new StrictCsp(initialHtml);
+    s.configureTrustedTypes();
+    const finalHtml = s.serializeDom();
+    expect(finalHtml).toMatchSnapshot();
+  });
+
+  it('should handle a missing reportUri for the report-only script', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        </body>
+      </html>`;
+    const s = new StrictCsp(initialHtml, {
+      enableTrustedTypesReportOnly: true,
+    });
+    s.configureTrustedTypes();
+    const finalHtml = s.serializeDom();
+    expect(finalHtml).toMatchSnapshot();
+  });
+
+  it('should refactor scripts with Trusted Types enabled', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <body>
+          <script src="app.js"></script>
+        </body>
+      </html>`;
+
+    const s = new StrictCsp(initialHtml);
+    s.refactorSourcedScriptsForHashBasedCsp(true);
+    const finalHtml = s.serializeDom();
     expect(finalHtml).toMatchSnapshot();
   });
 });

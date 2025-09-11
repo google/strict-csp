@@ -46,6 +46,194 @@ exports[`StrictCsp end-to-end serialization should correctly refactor and add a 
       </html>"
 `;
 
+exports[`StrictCsp with TrustedTypes should add a report-only script 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body><script>
+    if (self.trustedTypes && !self.trustedTypes.defaultPolicy) {
+      
+      const generateAndSendReport = function(sample) {
+        const stack = (new Error()).stack;
+        const regex = /([^ ()]+):(d+):(d+)/g;
+        let match;
+        let lastMatch;
+        while ((match = regex.exec(stack)) !== null) {
+          lastMatch = match;
+        }
+        const data = JSON.stringify({'csp-report': {
+          'document-uri': window.location.href,
+          'referrer': '', // No way of knowning this.
+          'violated-directive': 'require-trusted-types-for',
+          'effective-directive': 'require-trusted-types-for',
+          'original-policy': '', // No way of knowing this
+          'disposition': 'report',
+          'blocked-uri': 'trusted-types-sink',
+          'line-number': lastMatch && lastMatch[2] ? +lastMatch[2] : 0,
+          'column-number': lastMatch && lastMatch[3] ? +lastMatch[3] : 0,
+          'source-file': lastMatch && lastMatch[1] ? lastMatch[1] : '',
+          'status-code': 0, // No way of knowing this.
+          'script-sample': sample
+        }});
+        const blob = new Blob([data], {'Content-Type': 'application/json'});
+        if (self.navigator && self.navigator.sendBeacon) {
+          navigator.sendBeacon('https://example.com/report', blob);
+        }
+        return data;
+      };
+      
+      self.trustedTypes.createPolicy('default', {
+        createHTML: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedHTML' assignment: " + s);
+          generateAndSendReport('Element innerHTML|' + s);
+          return s;
+        },
+        createScript: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedScript' assignment: " + s);
+          generateAndSendReport('HTMLScriptElement text|' + s);
+          return s;
+        },
+        createScriptURL: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedScriptURL' assignment: " + s);
+          generateAndSendReport('HTMLScriptElement src|' + s);
+          return s;
+        },
+      });
+    }
+    </script>
+        </body>
+      </html>"
+`;
+
+exports[`StrictCsp with TrustedTypes should add a reporter script 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        <script>
+    if (self.ReportingObserver) {
+      const options = {
+        types: ["csp-violation"],
+        buffered: true,
+      };
+      const observer = new ReportingObserver(function(reports, observer) {
+        reports.forEach(function(report) {
+          if (report.body.blockedURL === 'trusted-types-sink') {
+            const data = JSON.stringify({'csp-report': {
+              'document-uri': report.body.documentURL,
+              'referrer': report.body.referrer,
+              'violated-directive': report.body.effectiveDirective,
+              'effective-directive': report.body.effectiveDirective,
+              'original-policy': report.body.originalPolicy,
+              'disposition': report.body.disposition,
+              'blocked-uri': report.body.blockedURL,
+              'line-number': report.body.lineNumber,
+              'column-number': report.body.columnNumber,
+              'status-code': report.body.statusCode,
+              'source-file': report.body.sourceFile,
+              'script-sample': report.body.sample
+            }});
+            const blob = new Blob([data], {'Content-Type': 'application/json'});
+            if (self.navigator && self.navigator.sendBeacon) {
+              navigator.sendBeacon('https://example.com/report', blob);
+            } else {
+              // Technically no need to worry about this because all browsers that support ReportingObserver support sendBeacon
+              const req = new XMLHttpRequest();
+              req.open('POST', 'https://example.com/report');
+              req.setRequestHeader('Content-Type', 'application/json');
+              req.send(data);
+            }
+          }
+        });
+      }, options);
+      observer.observe();
+    } else {
+      console.error('No ReportingObserver API present. Content Security Policy and Trusted Types reports will not be sent to the reporting URI.');
+    }
+    </script></body>
+      </html>"
+`;
+
+exports[`StrictCsp with TrustedTypes should handle a missing reportUri for the report-only script 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body><script>
+    if (self.trustedTypes && !self.trustedTypes.defaultPolicy) {
+      
+      console.error("No reportUri was specified. Reports will not be sent to the remote endpoint.");
+      const generateAndSendReport = function(sample) {};
+      
+      self.trustedTypes.createPolicy('default', {
+        createHTML: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedHTML' assignment: " + s);
+          generateAndSendReport('Element innerHTML|' + s);
+          return s;
+        },
+        createScript: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedScript' assignment: " + s);
+          generateAndSendReport('HTMLScriptElement text|' + s);
+          return s;
+        },
+        createScriptURL: function(s) {
+          console.error("[Report Only] Uncaught TypeError: This document requires 'TrustedScriptURL' assignment: " + s);
+          generateAndSendReport('HTMLScriptElement src|' + s);
+          return s;
+        },
+      });
+    }
+    </script>
+        </body>
+      </html>"
+`;
+
+exports[`StrictCsp with TrustedTypes should handle a missing reportUri for the reporter script 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+        <script>console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")</script></body>
+      </html>"
+`;
+
+exports[`StrictCsp with TrustedTypes should refactor scripts with Trusted Types enabled 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <body>
+          
+        <script>
+    var scripts = [{"src":"app.js"}];
+    var scriptSrcs = new Set(scripts.map(function(s) { return s.src; }));
+    var policy = self.trustedTypes && self.trustedTypes.createPolicy ?
+      self.trustedTypes.createPolicy('strict-csp#loader', {createScriptURL: function(u) {
+        return scriptSrcs.has(u) ? u : null;
+      }}) : { createScriptURL: function(u) { return u; } };
+    scripts.forEach(function(scriptInfo) {
+      var s = document.createElement('script');
+      s.src = policy.createScriptURL(scriptInfo.src);
+      if (scriptInfo.type) {
+        s.type = scriptInfo.type;
+      }
+      s.async = false; // preserve execution order.
+      document.body.appendChild(s);
+    });
+    </script></body>
+      </html>"
+`;
+
 exports[`StrictCsp.getStrictCsp should generate a CSP with Trusted Types enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
 
 exports[`StrictCsp.getStrictCsp should generate a CSP with all options enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
