@@ -68,11 +68,12 @@ By default, strict-csp-html-webpack-plugin will set up a valid, strict, hash-bas
 
 You can use additional options to configure the plugin:
 
-| Option               | Default | What it does                                                                                                            |
-| -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `enabled`            | `true`  | When `true`, activates the plugin.                                                                                      |
-| `enableTrustedTypes` | `false`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
-| `enableUnsafeEval`   | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
+| Option                   | Default | What it does                                                                                                            |
+| ------------------------ | ------- | ----------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                | `true`  | When `true`, activates the plugin.                                                                                      |
+| `enableBrowserFallbacks` | `true`  | When `true`, enables fallbacks for older browsers. This does not weaken the policy. |
+| `enableTrustedTypes`     | `false` | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
+| `enableUnsafeEval`       | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
 
 ## FAQ
 
