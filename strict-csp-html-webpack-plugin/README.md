@@ -62,17 +62,31 @@ module.exports = function (webpackEnv) {
 
 ✨ Your app is now protected from many XSS attacks.
 
+## Configuring Trusted Types
+
+To enable Trusted Types and violation reporting, you can pass additional options to the plugin in your `webpack.config.js`:
+
+```javascript
+new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin, {
+  enableTrustedTypes: true,
+  enableTrustedTypesReportOnly: true, // Recommended for testing
+  reportUri: 'https://your-reporting-endpoint.com/report',
+}),
+```
+
 ## Options
 
 By default, strict-csp-html-webpack-plugin will set up a valid, strict, hash-based CSP.
 
 You can use additional options to configure the plugin:
 
-| Option               | Default | What it does                                                                                                            |
-| -------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `enabled`            | `true`  | When `true`, activates the plugin.                                                                                      |
-| `enableTrustedTypes` | `false`  | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
-| `enableUnsafeEval`   | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
+| Option                        | Default | What it does                                                                                                                              |
+| ----------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
+| `enabled`                     | `true`  | When `true`, activates the plugin.                                                                                                        |
+| `enableTrustedTypes`          | `false` | When `true`, enables [Trusted Types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks.                      |
+| `enableTrustedTypesReportOnly`| `false` | When `true`, enables Trusted Types in report-only mode. Requires `enableTrustedTypes` to be `true`.                                          |
+| `reportUri`                   | `''`    | The URI to send Trusted Types violation reports to. Requires `enableTrustedTypes` to be `true`.                                             |
+| `enableUnsafeEval`            | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.                           |
 
 ## FAQ
 

@@ -42,6 +42,31 @@ const htmlStringWithCsp = s.serializeDom();
 
 **TL;DR: this library automates the steps to [add a hash-based strict CSP to your site](https://web.dev/strict-csp/#adopting-a-strict-csp).**
 
+## Example Usage with Trusted Types
+
+You can also use this library to configure [Trusted Types](https://web.dev/trusted-types) and set up violation reporting.
+
+```javascript
+const s = new StrictCsp(htmlString, {
+  enableTrustedTypes: true,
+  enableTrustedTypesReportOnly: true, // Recommended for testing
+  reportUri: 'https://your-reporting-endpoint.com/report',
+});
+
+// This will add the necessary reporting scripts to the HTML
+s.configureTrustedTypes();
+
+// The rest of the process is the same
+s.refactorSourcedScriptsForHashBasedCsp();
+const scriptHashes = s.hashAllInlineScripts();
+const strictCsp = StrictCsp.getStrictCsp(scriptHashes, {
+  enableBrowserFallbacks: true,
+  enableTrustedTypes: true, // This adds the 'require-trusted-types-for' directive
+});
+s.addMetaTag(strictCsp);
+const htmlStringWithCsp = s.serializeDom();
+```
+
 ## Arguments for the options object in `getStrictCsp`
 
 By default, strict-csp will generate up a valid, strict, hash-based CSP.
