@@ -58,7 +58,7 @@ describe('StrictCspHtmlWebpackPlugin Integration Test', () => {
   });
 
   it('should build successfully with Trusted Types enabled', (done) => {
-    runWebpack({ enableTrustedTypes: true }, (err, outputHtml) => {
+    runWebpack({ trustedTypes: true }, (err, outputHtml) => {
       if (err) return done(err);
       const $ = cheerio.load(outputHtml);
       const metaTag = $('meta[http-equiv="Content-Security-Policy"]');
@@ -73,8 +73,7 @@ describe('StrictCspHtmlWebpackPlugin Integration Test', () => {
   it('should build successfully with Trusted Types in report-only mode', (done) => {
     runWebpack(
       {
-        enableTrustedTypes: true,
-        enableTrustedTypesReportOnly: true,
+        trustedTypes: 'report-only',
         reportUri: 'https://example.com/report',
       },
       (err, outputHtml) => {

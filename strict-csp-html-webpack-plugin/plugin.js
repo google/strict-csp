@@ -18,9 +18,9 @@ const strictCspLib = require('strict-csp');
 
 const defaultOptions = {
   enabled: true,
-  enableTrustedTypes: false,
-  enableUnsafeEval: false,
-  enableTrustedTypesReportOnly: false,
+  trustedTypes: false,
+  unsafeEval: false,
+  reportUri: '',
 };
 
 class StrictCspHtmlWebpackPlugin {
@@ -41,30 +41,26 @@ class StrictCspHtmlWebpackPlugin {
   processCsp(compilation, htmlPluginData, compileCb) {
     if (this.options.enabled) {
       const {
+        trustedTypes,
         enableTrustedTypes,
         enableTrustedTypesReportOnly,
         enableUnsafeEval,
         reportUri,
       } = this.options;
 
-      const strictCspModule = new strictCspLib.StrictCsp(htmlPluginData.html, {
-        reportUri,
-        enableTrustedTypesReportOnly,
+      const processor = new strictCspLib.StrictCsp(htmlPluginData.html, {
+        trustedTypes:
+          enableTrustedTypesReportOnly || trustedTypes === 'report-only'
+            ? 'report-only'
+            : enableTrustedTypes || trustedTypes,
+        unsafeEval: enableUnsafeEval,
+        reportUri: reportUri,
+        browserFallbacks: true, // Fallbacks are always enabled in the plugin
       });
 
-      if (enableTrustedTypes) {
-        strictCspModule.configureTrustedTypes();
-      }
-
-      strictCspModule.refactorSourcedScriptsForHashBasedCsp(enableTrustedTypes);
-      const scriptHashes = strictCspModule.hashAllInlineScripts();
-      const strictCsp = strictCspLib.StrictCsp.getStrictCsp(scriptHashes, {
-        enableBrowserFallbacks: true,
-        enableTrustedTypes,
-        enableUnsafeEval,
-      });
-      strictCspModule.addMetaTag(strictCsp);
-      htmlPluginData.html = strictCspModule.serializeDom();
+      const { csp } = processor.process();
+      processor.addMetaTag(csp);
+      htmlPluginData.html = processor.serializeDom();
     }
 
     return compileCb(null, htmlPluginData);

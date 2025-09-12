@@ -1,7 +1,7 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
 exports[`StrictCspHtmlWebpackPlugin Integration Test should build successfully with Trusted Types enabled 1`] = `
-"<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-hfkMQUtrGaV9Uez8SrVeJZBiYCiioB5wptDoItt+1O4=' 'sha256-e8lGHsOdJBC9DQQ8Ur9M8w3j6amuteoVxxn7lMC2I/4=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"><title>Complex Test</title><link rel="preload" href="styles.css" as="style"></head><body><h1>Hello World</h1><script>console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")</script><script>
+"<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-e8lGHsOdJBC9DQQ8Ur9M8w3j6amuteoVxxn7lMC2I/4=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"><title>Complex Test</title><link rel="preload" href="styles.css" as="style"></head><body><h1>Hello World</h1><script>
     var scripts = [{"src":"library1.bundle.js"},{"src":"app.bundle.js"},{"src":"library2.bundle.js"}];
     var scriptSrcs = new Set(scripts.map(function(s) { return s.src; }));
     var policy = self.trustedTypes && self.trustedTypes.createPolicy ?
@@ -17,11 +17,11 @@ exports[`StrictCspHtmlWebpackPlugin Integration Test should build successfully w
       s.async = false; // preserve execution order.
       document.body.appendChild(s);
     });
-    </script></body></html>"
+    </script><script>console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")</script></body></html>"
 `;
 
 exports[`StrictCspHtmlWebpackPlugin Integration Test should build successfully with Trusted Types in report-only mode 1`] = `
-"<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-+DCPvZD2HqhkrLC5qbh/zLY7MzztgwVji2uFIc4Zaug=' 'sha256-e8lGHsOdJBC9DQQ8Ur9M8w3j6amuteoVxxn7lMC2I/4=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"><title>Complex Test</title><link rel="preload" href="styles.css" as="style"></head><body><script>
+"<!doctype html><html><head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-e8lGHsOdJBC9DQQ8Ur9M8w3j6amuteoVxxn7lMC2I/4=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"><title>Complex Test</title><link rel="preload" href="styles.css" as="style"></head><body><script>
     if (self.trustedTypes && !self.trustedTypes.defaultPolicy) {
       
       const generateAndSendReport = function(sample) {

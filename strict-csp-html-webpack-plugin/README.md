@@ -68,8 +68,7 @@ To enable Trusted Types and violation reporting, you can pass additional options
 
 ```javascript
 new StrictCspHtmlWebpackPlugin(HtmlWebpackPlugin, {
-  enableTrustedTypes: true,
-  enableTrustedTypesReportOnly: true, // Recommended for testing
+  trustedTypes: 'report-only', // Recommended for testing
   reportUri: 'https://your-reporting-endpoint.com/report',
 }),
 ```
@@ -83,9 +82,8 @@ You can use additional options to configure the plugin:
 | Option                        | Default | What it does                                                                                                                              |
 | ----------------------------- | ------- | ----------------------------------------------------------------------------------------------------------------------------------------- |
 | `enabled`                     | `true`  | When `true`, activates the plugin.                                                                                                        |
-| `enableTrustedTypes`          | `false` | When `true`, enables [Trusted Types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks.                      |
-| `enableTrustedTypesReportOnly`| `false` | When `true`, enables Trusted Types in report-only mode. Requires `enableTrustedTypes` to be `true`.                                          |
-| `reportUri`                   | `''`    | The URI to send Trusted Types violation reports to. Requires `enableTrustedTypes` to be `true`.                                             |
+| `trustedTypes` | `boolean` \| `'report-only'` | (Default: `false`) When `true`, enforces [Trusted Types](https://web.dev/trusted-types). When `'report-only'`, it enables violation reporting without enforcement. |
+| `reportUri`                   | `''`    | The URI to send Trusted Types violation reports to. Requires `trustedTypes` to be set.                                             |
 | `enableUnsafeEval`            | `false` | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.                           |
 
 ## FAQ
