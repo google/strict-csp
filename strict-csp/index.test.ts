@@ -45,60 +45,64 @@ describe('StrictCsp.hashInlineScript', () => {
   });
 });
 
-describe('StrictCsp.getStrictCsp', () => {
+describe('StrictCsp.process() CSP generation', () => {
   it('should generate a valid strict CSP policy', () => {
-    const hashes = [`'sha256-someHash123='`, `'sha256-anotherHash456='`];
-    const result = StrictCsp.getStrictCsp(hashes, {
-      enableBrowserFallbacks: true,
-      enableTrustedTypes: false,
-      enableUnsafeEval: false,
+    const html = `<script>console.log('inline');</script>`;
+    const processor = new StrictCsp(html, {
+      browserFallbacks: true,
+      trustedTypes: false,
+      unsafeEval: false,
     });
-
-    // Using a snapshot for a more complex output
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 
-  it('should generate a CSP with no hashes', () => {
-    const result = StrictCsp.getStrictCsp([], {
-      enableBrowserFallbacks: true,
-      enableTrustedTypes: false,
-      enableUnsafeEval: false,
+  it('should generate a CSP with no hashes for empty html', () => {
+    const processor = new StrictCsp('', {
+      browserFallbacks: true,
+      trustedTypes: false,
+      unsafeEval: false,
     });
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 
   it('should generate a CSP with browser fallbacks disabled', () => {
-    const hashes = [`'sha256-someHash123='`];
-    const result = StrictCsp.getStrictCsp(hashes, {
-      enableBrowserFallbacks: false,
+    const html = `<script>console.log('inline');</script>`;
+    const processor = new StrictCsp(html, {
+      browserFallbacks: false,
     });
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 
   it('should generate a CSP with Trusted Types enabled', () => {
-    const hashes = [`'sha256-someHash123='`];
-    const result = StrictCsp.getStrictCsp(hashes, {
-      enableTrustedTypes: true,
+    const html = `<script>console.log('inline');</script>`;
+    const processor = new StrictCsp(html, {
+      trustedTypes: true,
     });
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 
   it('should generate a CSP with unsafe-eval enabled', () => {
-    const hashes = [`'sha256-someHash123='`];
-    const result = StrictCsp.getStrictCsp(hashes, {
-      enableUnsafeEval: true,
+    const html = `<script>console.log('inline');</script>`;
+    const processor = new StrictCsp(html, {
+      unsafeEval: true,
     });
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 
   it('should generate a CSP with all options enabled', () => {
-    const hashes = [`'sha256-someHash123='`];
-    const result = StrictCsp.getStrictCsp(hashes, {
-      enableBrowserFallbacks: true,
-      enableTrustedTypes: true,
-      enableUnsafeEval: true,
+    const html = `<script>console.log('inline');</script>`;
+    const processor = new StrictCsp(html, {
+      browserFallbacks: true,
+      trustedTypes: true,
+      unsafeEval: true,
     });
-    expect(result).toMatchSnapshot();
+    const { csp } = processor.process();
+    expect(csp).toMatchSnapshot();
   });
 });
 
@@ -116,15 +120,12 @@ describe('StrictCsp end-to-end serialization', () => {
         </body>
       </html>`;
 
-    // Follow the example usage from README.md
-    const s = new StrictCsp(initialHtml);
-    s.refactorSourcedScriptsForHashBasedCsp();
-    const scriptHashes = s.hashAllInlineScripts();
-    const strictCsp = StrictCsp.getStrictCsp(scriptHashes, {
-      enableBrowserFallbacks: true,
+    const processor = new StrictCsp(initialHtml, {
+      browserFallbacks: true,
     });
-    s.addMetaTag(strictCsp);
-    const finalHtml = s.serializeDom();
+    const { csp } = processor.process();
+    processor.addMetaTag(csp);
+    const finalHtml = processor.serializeDom();
 
     expect(finalHtml).toMatchSnapshot();
   });
@@ -138,20 +139,17 @@ describe('StrictCsp end-to-end serialization', () => {
         </body>
       </html>`;
 
-    const s = new StrictCsp(initialHtml);
-    s.refactorSourcedScriptsForHashBasedCsp();
-    const scriptHashes = s.hashAllInlineScripts();
-    const strictCsp = StrictCsp.getStrictCsp(scriptHashes);
-    s.addMetaTag(strictCsp);
-    const finalHtml = s.serializeDom();
+    const processor = new StrictCsp(initialHtml);
+    const { csp } = processor.process();
+    processor.addMetaTag(csp);
+    const finalHtml = processor.serializeDom();
 
     expect(finalHtml).toMatchSnapshot();
   });
 });
 
 describe('StrictCsp with TrustedTypes', () => {
-  it('should add a reporter script', () => {
-    const initialHtml = `
+  const baseHtml = `
       <!DOCTYPE html>
       <html>
         <head>
@@ -160,65 +158,35 @@ describe('StrictCsp with TrustedTypes', () => {
         <body>
         </body>
       </html>`;
-    const s = new StrictCsp(initialHtml, {
+
+  it('should add a reporter script', () => {
+    const processor = new StrictCsp(baseHtml, {
+      trustedTypes: true,
       reportUri: 'https://example.com/report',
     });
-    s.configureTrustedTypes();
-    const finalHtml = s.serializeDom();
-    expect(finalHtml).toMatchSnapshot();
+    const { html } = processor.process();
+    expect(html).toMatchSnapshot();
   });
 
   it('should add a report-only script', () => {
-    const initialHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Test</title>
-        </head>
-        <body>
-        </body>
-      </html>`;
-    const s = new StrictCsp(initialHtml, {
+    const processor = new StrictCsp(baseHtml, {
+      trustedTypes: 'report-only',
       reportUri: 'https://example.com/report',
-      enableTrustedTypesReportOnly: true,
     });
-    s.configureTrustedTypes();
-    const finalHtml = s.serializeDom();
-    expect(finalHtml).toMatchSnapshot();
+    const { html } = processor.process();
+    expect(html).toMatchSnapshot();
   });
 
   it('should handle a missing reportUri for the reporter script', () => {
-    const initialHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Test</title>
-        </head>
-        <body>
-        </body>
-      </html>`;
-    const s = new StrictCsp(initialHtml);
-    s.configureTrustedTypes();
-    const finalHtml = s.serializeDom();
-    expect(finalHtml).toMatchSnapshot();
+    const processor = new StrictCsp(baseHtml, { trustedTypes: true });
+    const { html } = processor.process();
+    expect(html).toMatchSnapshot();
   });
 
   it('should handle a missing reportUri for the report-only script', () => {
-    const initialHtml = `
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <title>Test</title>
-        </head>
-        <body>
-        </body>
-      </html>`;
-    const s = new StrictCsp(initialHtml, {
-      enableTrustedTypesReportOnly: true,
-    });
-    s.configureTrustedTypes();
-    const finalHtml = s.serializeDom();
-    expect(finalHtml).toMatchSnapshot();
+    const processor = new StrictCsp(baseHtml, { trustedTypes: 'report-only' });
+    const { html } = processor.process();
+    expect(html).toMatchSnapshot();
   });
 
   it('should refactor scripts with Trusted Types enabled', () => {
@@ -230,9 +198,8 @@ describe('StrictCsp with TrustedTypes', () => {
         </body>
       </html>`;
 
-    const s = new StrictCsp(initialHtml);
-    s.refactorSourcedScriptsForHashBasedCsp(true);
-    const finalHtml = s.serializeDom();
-    expect(finalHtml).toMatchSnapshot();
+    const processor = new StrictCsp(initialHtml, { trustedTypes: true });
+    const { html } = processor.process();
+    expect(html).toMatchSnapshot();
   });
 });

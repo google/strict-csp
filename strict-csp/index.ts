@@ -18,9 +18,28 @@ import * as crypto from 'crypto';
 import * as cheerio from 'cheerio';
 
 /** CSP and Trusted Types configuration options. */
-export interface StrictCspOptions {
+export interface StrictCspConfig {
+  /**
+   * Controls Trusted Types behavior.
+   * - `true`: Enforces Trusted Types.
+   * - `'report-only'`: Enables Trusted Types in report-only mode.
+   * - `false` (default): Does not enable Trusted Types.
+   */
+  trustedTypes?: boolean | 'report-only';
+
+  /** A URL where CSP and Trusted Types violation reports should be sent. */
   reportUri?: string;
-  enableTrustedTypesReportOnly?: boolean;
+
+  /**
+   * If true, adds `'unsafe-eval'` to the policy. Should only be used as a last
+   * resort. Defaults to `false`.
+   */
+  unsafeEval?: boolean;
+
+  /**
+   * If true, adds fallbacks for older browsers. Defaults to `true`.
+   */
+  browserFallbacks?: boolean;
 }
 
 /** Module for enabling a hash-based strict Content Security Policy. */
@@ -29,15 +48,21 @@ export class StrictCsp {
   private static readonly INLINE_SCRIPT_SELECTOR = 'script:not([src])';
   private static readonly SOURCED_SCRIPT_SELECTOR = 'script[src]';
   private $: cheerio.Root;
-  private options: StrictCspOptions;
+  private config: StrictCspConfig;
+  private hashes: string[] = [];
 
-  constructor(html: string, options: StrictCspOptions = {}) {
+  constructor(html: string, config: StrictCspConfig = {}) {
     this.$ = cheerio.load(html, {
       decodeEntities: false,
       _useHtmlParser2: true,
       xmlMode: false,
     });
-    this.options = options;
+    this.config = {
+      trustedTypes: false,
+      unsafeEval: false,
+      browserFallbacks: true,
+      ...config,
+    };
   }
 
   serializeDom(): string {
@@ -45,34 +70,33 @@ export class StrictCsp {
   }
 
   /**
-   * Returns a strict Content Security Policy for mittigating XSS.
-   * For more details read csp.withgoogle.com.
-   * If you modify this CSP, make sure it has not become trivially bypassable by
-   * checking the policy using csp-evaluator.withgoogle.com.
-   *
-   * @param hashes A list of sha-256 hashes of trusted inline scripts.
-   * @param enableTrustedTypes If Trusted Types should be enabled for scripts.
-   * @param enableBrowserFallbacks If fallbacks for older browsers should be
-   *   added. This is will not weaken the policy as modern browsers will ignore
-   *   the fallbacks.
-   * @param enableUnsafeEval If you cannot remove all uses of eval(), you can
-   *   still set a strict CSP, but you will have to use the 'unsafe-eval'
-   *   keyword which will make your policy slightly less secure.
+   * Processes the HTML based on the configuration provided in the constructor.
+   * @returns An object containing the modified HTML and the generated CSP
+   *     string.
    */
-  static getStrictCsp(
-    hashes?: string[],
-    // default CSP options
-    cspOptions: {
-      enableBrowserFallbacks?: boolean;
-      enableTrustedTypes?: boolean;
-      enableUnsafeEval?: boolean;
-    } = {
-      enableBrowserFallbacks: true,
-      enableTrustedTypes: false,
-      enableUnsafeEval: false,
+  process(): {html: string; csp: string} {
+    this.refactorSourcedScripts_();
+    this.hashes = this.hashAllInlineScripts_();
+
+    if (this.config.trustedTypes) {
+      this.configureTrustedTypes_();
     }
-  ): string {
-    hashes = hashes || [];
+
+    const csp = this.generateCspString_();
+
+    return {
+      html: this.serializeDom(),
+      csp: csp,
+    };
+  }
+
+  private generateCspString_(): string {
+    const hashes = this.hashes;
+    const cspOptions = {
+      enableBrowserFallbacks: this.config.browserFallbacks,
+      enableTrustedTypes: !!this.config.trustedTypes,
+      enableUnsafeEval: this.config.unsafeEval,
+    };
     let strictCspTemplate = {
       // 'strict-dynamic' allows hashed scripts to create new scripts.
       'script-src': [`'strict-dynamic'`, ...hashes],
@@ -122,23 +146,23 @@ export class StrictCsp {
   /**
    * Configures Trusted Types by adding the necessary reporting scripts.
    */
-  configureTrustedTypes(): void {
-    if (this.options.enableTrustedTypesReportOnly) {
+  private configureTrustedTypes_(): void {
+    if (this.config.trustedTypes === 'report-only') {
       const reportOnlyScript = StrictCsp.createReportOnlyModeScript(
-        this.options.reportUri
+        this.config.reportUri
       );
-      this.prependScriptToBody(reportOnlyScript);
+      this.prependScriptToBody_(reportOnlyScript);
     } else {
-      if (!this.options.reportUri) {
-        this.appendScriptToBody(
+      if (!this.config.reportUri) {
+        this.appendScriptToBody_(
           `console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")`
         );
         return;
       }
       const reporterScript = StrictCsp.createReporterScript(
-        this.options.reportUri
+        this.config.reportUri
       );
-      this.appendScriptToBody(reporterScript);
+      this.appendScriptToBody_(reporterScript);
     }
   }
 
@@ -166,7 +190,7 @@ export class StrictCsp {
    *
    * @param script JS content of the script to be added.
    */
-  private appendScriptToBody(script: string): void {
+  private appendScriptToBody_(script: string): void {
     const newScript = cheerio.load('<script>')('script');
     newScript.text(script);
     newScript.appendTo(this.$('body'));
@@ -177,7 +201,7 @@ export class StrictCsp {
    *
    * @param script JS content of the script to be added.
    */
-  private prependScriptToBody(script: string): void {
+  private prependScriptToBody_(script: string): void {
     const newScript = cheerio.load('<script>')('script');
     newScript.text(script);
     newScript.prependTo(this.$('body'));
@@ -186,7 +210,7 @@ export class StrictCsp {
   /**
    * Replaces all sourced scripts with a single inline script that can be hashed
    */
-  refactorSourcedScriptsForHashBasedCsp(enableTrustedTypes = false): void {
+  private refactorSourcedScripts_(): void {
     const scriptInfoList = this.$(StrictCsp.SOURCED_SCRIPT_SELECTOR)
       .get()
       .map((script) => {
@@ -202,19 +226,19 @@ export class StrictCsp {
 
     const loaderScript = StrictCsp.createLoaderScript(
       scriptInfoList,
-      enableTrustedTypes
+      !!this.config.trustedTypes
     );
     if (!loaderScript) {
       return;
     }
 
-    this.appendScriptToBody(loaderScript);
+    this.appendScriptToBody_(loaderScript);
   }
 
   /**
    * Returns a list of hashes of all inline scripts found in the HTML document.
    */
-  hashAllInlineScripts(): string[] {
+  private hashAllInlineScripts_(): string[] {
     return this.$(StrictCsp.INLINE_SCRIPT_SELECTOR)
       .map((i, elem) => StrictCsp.hashInlineScript(this.$(elem).html() || ''))
       .get();

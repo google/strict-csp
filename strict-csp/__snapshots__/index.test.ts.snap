@@ -230,18 +230,18 @@ exports[`StrictCsp with TrustedTypes should refactor scripts with Trusted Types 
       s.async = false; // preserve execution order.
       document.body.appendChild(s);
     });
-    </script></body>
+    </script><script>console.error("No reportUri provided. Trusted Types reports will not be sent to a remote endpoint.")</script></body>
       </html>"
 `;
 
-exports[`StrictCsp.getStrictCsp should generate a CSP with Trusted Types enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
+exports[`StrictCsp.process() CSP generation should generate a CSP with Trusted Types enabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
 
-exports[`StrictCsp.getStrictCsp should generate a CSP with all options enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
+exports[`StrictCsp.process() CSP generation should generate a CSP with all options enabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
 
-exports[`StrictCsp.getStrictCsp should generate a CSP with browser fallbacks disabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=';object-src 'none';base-uri 'self';"`;
+exports[`StrictCsp.process() CSP generation should generate a CSP with browser fallbacks disabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=';object-src 'none';base-uri 'self';"`;
 
-exports[`StrictCsp.getStrictCsp should generate a CSP with no hashes 1`] = `"script-src 'strict-dynamic' https:;object-src 'none';base-uri 'self';"`;
+exports[`StrictCsp.process() CSP generation should generate a CSP with no hashes for empty html 1`] = `"script-src 'strict-dynamic' https:;object-src 'none';base-uri 'self';"`;
 
-exports[`StrictCsp.getStrictCsp should generate a CSP with unsafe-eval enabled 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' 'unsafe-eval';object-src 'none';base-uri 'self';"`;
+exports[`StrictCsp.process() CSP generation should generate a CSP with unsafe-eval enabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';"`;
 
-exports[`StrictCsp.getStrictCsp should generate a valid strict CSP policy 1`] = `"script-src 'strict-dynamic' 'sha256-someHash123=' 'sha256-anotherHash456=' https: 'unsafe-inline';object-src 'none';base-uri 'self';"`;
+exports[`StrictCsp.process() CSP generation should generate a valid strict CSP policy 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline';object-src 'none';base-uri 'self';"`;

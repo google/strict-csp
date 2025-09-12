@@ -2,7 +2,7 @@
 
 [Available on npm](https://www.npmjs.com/package/strict-csp)
 
-⚠️ This is experimental. Make sure to check [what's not supported](https://github.com/google/strict-csp/issues?q=is%3Aissue+is%3Aopen+label%3Afeature). Keep in mind that the `Report-Only` mode is not supported here since the policy is added via a meta tag (`Content-Security-Policy-Report-Only` is unfortunately not supported in meta tags).
+⚠️ This is experimental. Make sure to check [what's not supported](https://github.com/google/strict-csp/issues?q=is%3Aissue+is%3Aopen+label%3Afeature).
 
 ## What this library does: defense-in-depth against XSS 🛡
 
@@ -10,90 +10,95 @@ _💡 Are you using webpack? Head over to [strict-csp-html-webpack-plugin](https
 
 Cross-site scripting (XSS)—the ability to inject malicious scripts into a web application—has been one of the biggest web security vulnerabilities for over a decade.
 
-strict-csp is a **bundler-agnostic** library that helps protect your single-page application against XSS attacks. It does so by configuring a [strict, hash-based Content-Security-Policy (CSP)](https://web.dev/strict-csp) for your web application.
+strict-csp is a **bundler-agnostic** library that helps protect your single-page application against XSS attacks. It does so by generating a [strict, hash-based Content-Security-Policy (CSP)](https://web.dev/strict-csp) for your web application.
 
-A strict CSP, added in the form of an HTML `meta` tag, looks as follows:
+A strict CSP helps protect your site against XSS by preventing browsers from executing malicious scripts.
 
-```html
-<meta
-      http-equiv="Content-Security-Policy"
-      content="script-src 'sha256-3uCZp...oQxI=' 'strict-dynamic'; style-src 'self' 'unsafe-inline'">
-</meta>
-```
+## Usage
 
-## Example usage
+This library offers two primary workflows for applying a strict CSP.
 
-Let's say that `htmlString` is your SPA's html as a string.
+### Workflow 1: HTTP Header (Recommended)
+
+The recommended and most secure approach is to set the CSP as an HTTP response header. The `.process()` method returns both the modified HTML and the CSP string needed for the header.
 
 ```javascript
-const s = new StrictCsp(htmlString);
-// Refactor sourced scripts so that we can set a strict hash-based CSP
-s.refactorSourcedScriptsForHashBasedCsp();
-// Hash inline scripts from this html file, if there are any
-const scriptHashes = s.hashAllInlineScripts();
-// Generate a strict CSP as a string
-const strictCsp = StrictCsp.getStrictCsp(scriptHashes, {
-  enableBrowserFallbacks: true,
+// Let's say `htmlString` is your SPA's html as a string.
+const processor = new StrictCsp(htmlString, {
+  // Configuration options go here
+  browserFallbacks: true,
 });
-// Set this CSP via a meta tag
-s.addMetaTag(strictCsp);
-const htmlStringWithCsp = s.serializeDom();
+
+// Process the HTML and generate the CSP.
+const { html, csp } = processor.process();
+
+// In your server:
+// 1. Set the CSP as an HTTP Header.
+// response.setHeader('Content-Security-Policy', csp);
+// 2. Serve the modified HTML.
+// response.send(html);
 ```
 
-**TL;DR: this library automates the steps to [add a hash-based strict CSP to your site](https://web.dev/strict-csp/#adopting-a-strict-csp).**
+### Workflow 2: Meta Tag (Alternative)
 
-## Example Usage with Trusted Types
-
-You can also use this library to configure [Trusted Types](https://web.dev/trusted-types) and set up violation reporting.
+If you cannot set HTTP headers, you can inject the CSP into a `<meta>` tag. This is a two-step process.
 
 ```javascript
-const s = new StrictCsp(htmlString, {
-  enableTrustedTypes: true,
-  enableTrustedTypesReportOnly: true, // Recommended for testing
+const processor = new StrictCsp(htmlString);
+
+// 1. Process the HTML to get the CSP string.
+// (We ignore the 'html' returned here as it will be outdated).
+const { csp } = processor.process();
+
+// 2. Add the meta tag and get the final HTML.
+processor.addMetaTag(csp);
+const finalHtml = processor.serializeDom();
+
+// Serve the finalHtml.
+```
+
+## Example with Trusted Types
+
+You can also use this library to configure [Trusted Types](https://web.dev/trusted-types) and set up violation reporting. The `.process()` method automatically handles injecting the necessary reporting scripts into the HTML and adding the required directives to the CSP.
+
+```javascript
+const processor = new StrictCsp(htmlString, {
+  // Enable Trusted Types in report-only mode
+  trustedTypes: 'report-only',
+  // Specify an endpoint for violation reports
   reportUri: 'https://your-reporting-endpoint.com/report',
 });
 
-// This will add the necessary reporting scripts to the HTML
-s.configureTrustedTypes();
+const { html, csp } = processor.process();
 
-// The rest of the process is the same
-s.refactorSourcedScriptsForHashBasedCsp();
-const scriptHashes = s.hashAllInlineScripts();
-const strictCsp = StrictCsp.getStrictCsp(scriptHashes, {
-  enableBrowserFallbacks: true,
-  enableTrustedTypes: true, // This adds the 'require-trusted-types-for' directive
-});
-s.addMetaTag(strictCsp);
-const htmlStringWithCsp = s.serializeDom();
+// The `html` now contains the TT reporting scripts.
+// The `csp` now contains the 'require-trusted-types-for' directive.
 ```
 
-## Arguments for the options object in `getStrictCsp`
+**Note on Report-Only Mode:** The `trustedTypes: 'report-only'` option works by injecting a script that simulates this mode on the client-side by creating a **default policy** (`trustedTypes.createPolicy('default', ...)`). This policy intercepts calls to dangerous DOM sinks, reports violations, but ultimately allows them to proceed. This is especially useful for static deployments (e.g., with a meta tag) where you cannot set the standard `Content-Security-Policy-Report-Only` HTTP header.
 
-By default, strict-csp will generate up a valid, strict, hash-based CSP.
+## Configuration Options
 
-You can use additional options to configure it:
+You can pass a configuration object to the `StrictCsp` constructor:
 
-| Option                                        | What it does                                                                                                            |
-| --------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------- |
-| `enableBrowserFallbacks` (defaults to `true`) | When `true`, enables fallbacks for older browsers. This does not weaken the policy.                                     |
-| `enableTrustedTypes` (defaults to `false`)    | When `true`, enables [trusted types](https://web.dev/trusted-types) for additional protections against DOM XSS attacks. |
-| `enableUnsafeEval` (defaults to `false`)      | When `true`, enables [unsafe-eval](https://web.dev/strict-csp/) in case you cannot remove all uses of `eval()`.         |
+| Option | Type | What it does |
+| :--- | :--- | :--- |
+| `browserFallbacks` | `boolean` | (Default: `true`) When `true`, enables fallbacks for older browsers. This does not weaken the policy for modern browsers. |
+| `trustedTypes` | `boolean` \| `'report-only'` | (Default: `false`) When `true`, enforces [Trusted Types](https://web.dev/trusted-types). When `'report-only'`, it enables violation reporting without enforcement. |
+| `reportUri` | `string` | A URL where CSP and Trusted Types violation reports should be sent. |
+| `unsafeEval` | `boolean` | (Default: `false`) When `true`, adds `'unsafe-eval'` to the policy in case you cannot remove all uses of `eval()`. |
 
 ## How does this library work?
 
 Here's what the library does:
 
-1. It replaces sourced scripts with an inline script that dynamically loads all sourced scripts. It calculates the hash of this script.
-2. It calculates the hash of other inline scripts.
-3. It creates a strict hash-based CSP, that includes the hashes calculated in (1) and (2).
+1. It finds all externally sourced scripts (`<script src="...">`) and replaces them with a single inline script that dynamically loads them.
+2. It calculates the SHA-256 hash of this new loader script and all other inline scripts in the document.
+3. It uses these hashes to generate a strict, hash-based CSP string.
 
-This CSP efficiently helps protect your site against XSS. This CSP is set in a `meta` tag. It looks like this:
+This CSP efficiently helps protect your site against XSS.
 
-`script-src {HASH-INLINE-SCRIPT} 'strict-dynamic'; object-src 'none'; base-uri 'none';`.
-
-`{HASH-INLINE-SCRIPT}` is the hash on the inline script that dynamically loads all sourced scripts.
-
-**TL;DR: this library automates the steps to [add a hash-based CSP to your site](https://web.dev/strict-csp/#:~:text=Option%20B%3A%20Hash-based%20CSP%20Response%20Header).**
+**TL;DR: this library automates the steps to [add a hash-based CSP to your site](https://web.dev/strict-csp/#adopting-a-strict-csp).**
 
 ## Resources
 
