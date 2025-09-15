@@ -130,6 +130,28 @@ describe('StrictCsp end-to-end serialization', () => {
     expect(finalHtml).toMatchSnapshot();
   });
 
+  it('should correctly refactor and add a CSP meta tag using the convenience method', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+          <script src="main.js"></script>
+          <script>console.log('inline script');</script>
+        </body>
+      </html>`;
+
+    const processor = new StrictCsp(initialHtml, {
+      browserFallbacks: true,
+    });
+    const { csp } = processor.process();
+    const finalHtml = processor.serializeDomWithStrictCspMetaTag(csp);
+
+    expect(finalHtml).toMatchSnapshot();
+  });
+
   it('should correctly preserve the type="module" attribute', () => {
     const initialHtml = `
       <!DOCTYPE html>

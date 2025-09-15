@@ -46,6 +46,31 @@ exports[`StrictCsp end-to-end serialization should correctly refactor and add a 
       </html>"
 `;
 
+exports[`StrictCsp end-to-end serialization should correctly refactor and add a CSP meta tag using the convenience method 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-dIwX3/r4Zl0MpqRsxWkARQ0s7rnPg1QangRovs97KCI=' 'sha256-gUWJDv5nV7v/UTSPGBpQRi+C4y3R9HVuK3jrk0ZjwGc=' https: 'unsafe-inline';object-src 'none';base-uri 'self';">
+          <title>Test</title>
+        </head>
+        <body>
+          
+          <script>console.log('inline script');</script>
+        <script>
+    var scripts = [{"src":"main.js"}];
+    scripts.forEach(function(scriptInfo) {
+      var s = document.createElement('script');
+      s.src = scriptInfo.src;
+      if (scriptInfo.type) {
+        s.type = scriptInfo.type;
+      }
+      s.async = false; // preserve execution order.
+      document.body.appendChild(s);
+    });
+    </script></body>
+      </html>"
+`;
+
 exports[`StrictCsp with TrustedTypes should add a report-only script 1`] = `
 "
       <!DOCTYPE html>

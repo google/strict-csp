@@ -41,7 +41,7 @@ const { html, csp } = processor.process();
 
 ### Workflow 2: Meta Tag (Alternative)
 
-If you cannot set HTTP headers, you can inject the CSP into a `<meta>` tag. This is a two-step process.
+If you cannot set HTTP headers, you can inject the CSP into a `<meta>` tag.
 
 ```javascript
 const processor = new StrictCsp(htmlString);
@@ -51,8 +51,7 @@ const processor = new StrictCsp(htmlString);
 const { csp } = processor.process();
 
 // 2. Add the meta tag and get the final HTML.
-processor.addMetaTag(csp);
-const finalHtml = processor.serializeDom();
+const finalHtml = processor.serializeDomWithStrictCspMetaTag(csp);
 
 // Serve the finalHtml.
 ```

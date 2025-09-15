@@ -70,6 +70,17 @@ export class StrictCsp {
   }
 
   /**
+   * Adds a CSP meta tag and serializes the DOM.
+   * A convenience method for the meta tag workflow.
+   * @param csp The Content-Security-Policy string.
+   * @returns The processed HTML as a string.
+   */
+  serializeDomWithStrictCspMetaTag(csp: string): string {
+    this.addMetaTag(csp);
+    return this.serializeDom();
+  }
+
+  /**
    * Processes the HTML based on the configuration provided in the constructor.
    * @returns An object containing the modified HTML and the generated CSP
    *     string.
