@@ -59,8 +59,7 @@ class StrictCspHtmlWebpackPlugin {
       });
 
       const { csp } = processor.process();
-      processor.addMetaTag(csp);
-      htmlPluginData.html = processor.serializeDom();
+      htmlPluginData.html = processor.serializeDomWithStrictCspMetaTag(csp);
     }
 
     return compileCb(null, htmlPluginData);
