@@ -8,7 +8,7 @@
 
 Two codebases are in this repo:
 
-- `strict-csp`: a **bundler-agnostic library**, that can be used to generate a CSP. [Go to strict-csp](/strict-csp)
+- `strict-csp`: a **bundler-agnostic library**, that can be used to generate a CSP. It now includes support for Trusted Types and violation reporting. [Go to strict-csp](/strict-csp)
 
 - `strict-csp-html-webpack-plugin`: a **webpack plugin** that configures a strict, hash-based CSP for an SPA. It uses the `strict-csp` library to form a CSP and hooks into the popular `HtmlWebpackPlugin` to set up this CSP as a `meta` HTML tag. [Go to strict-csp-html-webpack-plugin](/strict-csp-html-webpack-plugin)
 
