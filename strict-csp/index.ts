@@ -40,6 +40,11 @@ export interface StrictCspConfig {
    * If true, adds fallbacks for older browsers. Defaults to `true`.
    */
   browserFallbacks?: boolean;
+
+  /**
+   * If true, adds strict-src-v2 feature.
+   */
+  strictSrcV2?: boolean;
 }
 
 /** Module for enabling a hash-based strict Content Security Policy. */
@@ -50,6 +55,7 @@ export class StrictCsp {
   private $: cheerio.Root;
   private config: StrictCspConfig;
   private hashes: string[] = [];
+  private urlHashes: string[] = [];
 
   constructor(html: string, config: StrictCspConfig = {}) {
     this.$ = cheerio.load(html, {
@@ -61,6 +67,7 @@ export class StrictCsp {
       trustedTypes: false,
       unsafeEval: false,
       browserFallbacks: true,
+      strictSrcV2: false,
       ...config,
     };
   }
@@ -86,8 +93,14 @@ export class StrictCsp {
    *     string.
    */
   process(): {html: string; csp: string} {
-    this.refactorSourcedScripts_();
+    if (!this.config.strictSrcV2) {
+      this.refactorSourcedScripts_();
+    }
     this.hashes = this.hashAllInlineScripts_();
+    
+    if (this.config.strictSrcV2) {
+      this.urlHashes = this.hashAllUrlScripts_();
+    }
 
     if (this.config.trustedTypes) {
       this.configureTrustedTypes_();
@@ -102,7 +115,7 @@ export class StrictCsp {
   }
 
   private generateCspString_(): string {
-    const hashes = this.hashes;
+    const hashes = this.hashes.concat(this.urlHashes);
     const cspOptions = {
       enableBrowserFallbacks: this.config.browserFallbacks,
       enableTrustedTypes: !!this.config.trustedTypes,
@@ -254,6 +267,16 @@ export class StrictCsp {
       .map((i, elem) => StrictCsp.hashInlineScript(this.$(elem).html() || ''))
       .get();
   }
+
+  /**
+   * Returns a list of hashes of all inline scripts found in the HTML document.
+   */
+  private hashAllUrlScripts_(): string[] {
+    return this.$(StrictCsp.SOURCED_SCRIPT_SELECTOR)
+      .map((i, elem) => '\'url-' + StrictCsp.hashInlineScript(this.$(elem).attr('src') || '').slice(1))
+      .get();
+  }
+
 
   /**
    * Returns JS code for dynamically loading sourced (external) scripts.

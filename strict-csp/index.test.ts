@@ -225,3 +225,30 @@ describe('StrictCsp with TrustedTypes', () => {
     expect(html).toMatchSnapshot();
   });
 });
+
+
+describe('StrictCsp with script-src-v2', () => {
+  it('should generate url hashes correctly', () => {
+    const initialHtml = `
+      <!DOCTYPE html>
+      <html>
+        <head>
+          <title>Test</title>
+        </head>
+        <body>
+          <script src="main.js"></script>
+          <script src="abcd.js"></script>
+          <script>console.log('inline script');</script>
+        </body>
+      </html>`;
+
+    const processor = new StrictCsp(initialHtml, {
+      browserFallbacks: true,
+      strictSrcV2: true,
+    });
+    const { csp } = processor.process();
+    const finalHtml = processor.serializeDomWithStrictCspMetaTag(csp);
+
+    expect(finalHtml).toMatchSnapshot();
+  });
+});

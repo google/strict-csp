@@ -259,6 +259,21 @@ exports[`StrictCsp with TrustedTypes should refactor scripts with Trusted Types 
       </html>"
 `;
 
+exports[`StrictCsp with script-src-v2 should generate url hashes correctly 1`] = `
+"
+      <!DOCTYPE html>
+      <html>
+        <head><meta http-equiv="Content-Security-Policy" content="script-src 'strict-dynamic' 'sha256-dIwX3/r4Zl0MpqRsxWkARQ0s7rnPg1QangRovs97KCI=' 'url-sha256-WEF+D3gbZlaUnTcljIuQUu0mbi63pRY8rXsIY+aykWo=' 'url-sha256-6XPsGGadES2PF3tgHkTa4UIcZZMBYDleKt2Jd1P/kIU=' https: 'unsafe-inline';object-src 'none';base-uri 'self';">
+          <title>Test</title>
+        </head>
+        <body>
+          <script src="main.js"></script>
+          <script src="abcd.js"></script>
+          <script>console.log('inline script');</script>
+        </body>
+      </html>"
+`;
+
 exports[`StrictCsp.process() CSP generation should generate a CSP with Trusted Types enabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
 
 exports[`StrictCsp.process() CSP generation should generate a CSP with all options enabled 1`] = `"script-src 'strict-dynamic' 'sha256-tlts22Eu/seSWbAw80TfZJgYnelKmP4ds0Ijym8yNpY=' https: 'unsafe-inline' 'unsafe-eval';object-src 'none';base-uri 'self';require-trusted-types-for 'script';"`;
